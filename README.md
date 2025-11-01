@@ -80,77 +80,61 @@ mkdir -p 0_Research_and_Study \
          configs \
          notebooks
 
-# Create base files
+# Create base files,
 touch requirements.txt logs.py zenmlNotes.txt configs/config.yaml
 
+```
+---
+## 🧱 Step-by-Step Workflow
 
+1️⃣ **Research & Study** (0_Research_and_Study/)
 
-🧱 Step-by-Step Workflow
-1️⃣ Research & Study (0_Research_and_Study/)
+-  Understand the NYC Yellow Taxi domain
+-  Define the ML problem: Where and when is taxi demand highest?
+-  Identify key features (pickup location, time, weather)
+-  Explore candidate models and metrics
 
-Understand the NYC Yellow Taxi domain
+2️⃣ **Data Preprocessing** (1_Data_Preprocess/)
 
-Define the ML problem: Where and when is taxi demand highest?
+-  Perform EDA and visualization
+-  Handle missing data and outliers
+-  Encode categorical features and scale numerical ones
+-  Feature selection/dimensionality reduction
+-  Save processed datasets to /3_Data/processed/
 
-Identify key features (pickup location, time, weather)
+3️⃣ **Model Development** (2_Model_Development/)
 
-Explore candidate models and metrics
+-  Train candidate models (RandomForest, XGBoost, LightGBM)
+-  Evaluate using RMSE, R², etc.
+-  Hyperparameter tuning
+-  Save best model artifact in /3_Data/artifacts/
 
-2️⃣ Data Preprocessing (1_Data_Preprocess/)
+4️⃣ **Pipeline Orchestration** (4_Pipelines/)
 
-Perform EDA and visualization
+-  Build ZenML pipelines for ETL, training, and inference
+-  Track experiments with MLflow
 
-Handle missing data and outliers
+5️⃣ **API Deployment** (5_API_Service/)
 
-Encode categorical features and scale numerical ones
+-  Serve predictions with FastAPI
+-  Validate input using Pydantic
+-  Add /predict, /health, /metrics endpoints
 
-Feature selection / dimensionality reduction
+6️⃣ **Docker & Cloud Deployment** (6_Docker_Deployment/)
 
-Save processed datasets to /3_Data/processed/
+-  Containerize with Docker
+-  Use Docker Compose to run API + MLflow + Postgres
+-  Optionally deploy to AWS/GCP/Render
 
-3️⃣ Model Development (2_Model_Development/)
+7️⃣ **Monitoring & Logging** (7_Monitoring/)
 
-Train candidate models (RandomForest, XGBoost, LightGBM)
+-  Integrate Prometheus + Grafana
+-  Track model drift and performance metrics
 
-Evaluate using RMSE, R², etc.
+8️⃣ **Testing** (8_Tests/)
 
-Hyperparameter tuning
-
-Save best model artifact in /3_Data/artifacts/
-
-4️⃣ Pipeline Orchestration (4_Pipelines/)
-
-Build ZenML pipelines for ETL, training, and inference
-
-Track experiments with MLflow
-
-5️⃣ API Deployment (5_API_Service/)
-
-Serve predictions with FastAPI
-
-Validate input using Pydantic
-
-Add /predict, /health, /metrics endpoints
-
-6️⃣ Docker & Cloud Deployment (6_Docker_Deployment/)
-
-Containerize with Docker
-
-Use docker-compose to run API + MLflow + Postgres
-
-Optionally deploy to AWS/GCP/Render
-
-7️⃣ Monitoring & Logging (7_Monitoring/)
-
-Integrate Prometheus + Grafana
-
-Track model drift and performance metrics
-
-8️⃣ Testing (8_Tests/)
-
-Unit tests for preprocessing and feature engineering
-
-Integration tests for API endpoints
+-  Unit tests for preprocessing and feature engineering
+-  Integration tests for API endpoints
 
 
 
@@ -166,39 +150,25 @@ Integration tests for API endpoints
 | Version Control | Git, GitHub                     |
 
 
+---
+### 📘 Next Improvements
 
-📘 Next Improvements
-
-✅ Add schema validation (Pydantic)
-✅ Add artifact versioning (scaler/encoder/model)
-✅ Integrate MLflow Model Registry
-✅ Add unit + integration tests
+✅ Add schema validation (Pydantic) </br>
+✅ Add artifact versioning (scaler/encoder/model) </br>
+✅ Integrate MLflow Model Registry </br>
+✅ Add unit + integration tests </br>
 ✅ Add monitoring dashboards
 
-📊 Dataset Reference
+---
+### 📊 Dataset Reference
 
-Dataset: NYC Taxi & Limousine Commission (TLC) Trip Record Data
-📦 Official Source → https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page
-
-🧑‍💻 Author
-
-Rasel Ahmed
-📍 Bangladesh
-💼 ML/AI Engineer
-📧 Contact via GitHub Issues
-
-📄 License
-
-This project is licensed under the MIT License
-.
-
-
-
+Dataset: NYC Taxi & Limousine Commission (TLC) Trip Record Data </br>
+📦 Official Source → [TLC Trip Record Data](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page)
 
 ---
+🧑‍💻 Author
 
-This version fixes all formatting issues and adds a **dataset reference** so others can reproduce your work.  
-
-If you paste this into your `README.md`, your repo will look **clean, professional, and portfolio-ready** 🚀  
-
-Would you like me to help you add a short **README badge section** at the top (Python version, ZenML, MLflow, Docker, etc.) to make it look even more pro?
+Sheikh Rasel Ahmed </br>
+📍 Bangladesh </br>
+💼 ML/AI Engineer </br>
+📧 Contact via GitHub Issues 
