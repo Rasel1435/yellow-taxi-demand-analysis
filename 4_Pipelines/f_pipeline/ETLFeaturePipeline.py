@@ -1,6 +1,6 @@
 import sys
 import os
-
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 # Add parent folder and steps to path
 current = os.path.dirname(os.path.abspath(__file__))
 parent = os.path.dirname(current)
@@ -11,7 +11,9 @@ from logs import configure_logger
 logger = configure_logger()
 
 from zenml import pipeline
-from h_steps.ingest import ingest_data
+from configs.config import DATA_SOURCE
+from h_steps.a_ingest import ingest_data
+from h_steps.b_clean import clean_data
 
 
 # -----------------------------------------------------
@@ -29,7 +31,9 @@ def run_pipeline():
     try:
         logger.info(f'==> Processing run_pipeline()')
         # Step 1: Ingest
-        data = ingest_data(DATA_SOURCE=r'../../3_Data/raw/yellow_tripdata_2025-01_january.parquet')
+        data = ingest_data(DATA_SOURCE=DATA_SOURCE)
+        # Step 2: Clean
+        cleaned_data = clean_data(data)
         logger.info(f'==> Successfully processed run_pipeline()')
     except Exception as e:
         logger.error(f"Pipeline failed: {e}")
