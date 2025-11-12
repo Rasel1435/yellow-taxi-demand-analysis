@@ -1,0 +1,1 @@
+DATA_SOURCE = r'../../3_Data/raw/yellow_tripdata_2025-01_january.parquet'
