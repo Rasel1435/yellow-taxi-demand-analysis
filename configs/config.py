@@ -1,1 +1,2 @@
-DATA_SOURCE = r'../../3_Data/raw/yellow_tripdata_2025-01_january.parquet'
+DATA_SOURCE = r'/media/sheikh/F262ADC762AD90C1/backup/ML/yellow-taxi-demand-analysis/3_Data/raw/yellow_tripdata_2025-01_january.parquet'
+# DATA_SOURCE = r'/media/sheikh/F262ADC762AD90C1/backup/ML/yellow-taxi-demand-analysis/3_Data/processed/a_2025_hourly_all.parquet'

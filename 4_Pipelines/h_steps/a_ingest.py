@@ -1,7 +1,6 @@
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
-import logging
 import pandas as pd
 from typing import Union
 from dask import dataframe as dd
@@ -68,6 +67,7 @@ def ingest_data(DATA_SOURCE: str) -> Union[pd.DataFrame, None]:
         # -----------------------------------------------------
         ddf = dd.read_parquet(DATA_SOURCE, engine="pyarrow")
 
+
         # -----------------------------------------------------
         # Dynamically infer month start timestamp
         # Example: "yellow_tripdata_2025-01.parquet" → "2025-01-01 00:00:00"
@@ -130,16 +130,17 @@ def ingest_data(DATA_SOURCE: str) -> Union[pd.DataFrame, None]:
         # -----------------------------------------------------
         # Done
         # -----------------------------------------------------
-        logger.info(f"Data ingestion complete! Final shape: {df.shape}")
+        logger.info(f"===> Data ingestion complete! Final shape: {df.shape}")
+        logger.info("===> Successfully processed ingest_data()")
         return df
 
     except Exception as e:
         logger.error(f"ingest_data() failed: {e}", exc_info=True)
-        return None
+        return pd.DataFrame()
 
 
-if __name__ == "__main__":
-    df = ingest_data(DATA_SOURCE=DATA_SOURCE)
+# if __name__ == "__main__":
+#     df = ingest_data(DATA_SOURCE=DATA_SOURCE)
 
-    print(df.head())
-    print(f"Data shape: {df.shape}" if df is not None else "Ingestion failed.")
+#     print(df.head())
+#     print(f"Data shape: {df.shape}" if df is not None else "Ingestion failed.")

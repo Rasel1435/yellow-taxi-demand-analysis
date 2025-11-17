@@ -1,203 +1,18 @@
-import sys
-import os
 import pandas as pd
-import dask.dataframe as dd
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
-from configs.config import DATA_SOURCE
-from typing import Union
+import matplotlib.pyplot as plt
+
 from zenml import step
 from logs import configure_logger
-from zenml import pipeline
 from feature_engine.datetime import DatetimeFeatures
 from feature_engine.timeseries.forecasting import (
     LagFeatures, 
     WindowFeatures, 
     ExpandingWindowFeatures
 )
-
-
-
 # -----------------------------------------------------
 # Logger setup
 # -----------------------------------------------------
 logger = configure_logger()
-
-
-# -----------------------------------------------------
-# Global variable for Dask/Pandas DataFrame
-# -----------------------------------------------------
-ddf: pd.DataFrame = None
-
-# -----------------------------------------------------
-# Optimize memory usage
-# -----------------------------------------------------
-def optimize_to_fit_memory(ddf: dd.DataFrame) -> dd.DataFrame:
-    try:
-        type_map = {
-            "int32": ["passenger_count"],
-            "int16": ["VendorID"],
-        }
-        for dtype, cols in type_map.items():
-            for col in cols:
-                if col in ddf.columns:
-                    ddf[col] = ddf[col].fillna(0).astype(dtype)
-        logger.info("optimize_to_fit_memory() - successfully applied")
-        return ddf
-    except Exception as e:
-        logger.error(f"optimize_to_fit_memory() failed: {e}")
-        return ddf
-
-# -----------------------------------------------------
-# ZenML Step: Ingest Data
-# -----------------------------------------------------
-@step(name="Data Ingestion", enable_step_logs=True)
-def ingest_data(DATA_SOURCE: str) -> Union[pd.DataFrame, None]:
-    global ddf
-    try:
-        logger.info(f"===> Starting data ingestion from: {DATA_SOURCE}")
-
-        # Read raw Parquet data
-        ddf = dd.read_parquet(DATA_SOURCE, engine="pyarrow")
-
-        
-        # -----------------------------------------------------
-        # Dynamically infer month start timestamp
-        # Example: "yellow_tripdata_2025-01.parquet" → "2025-01-01 00:00:00"
-        # -----------------------------------------------------
-        start_of_month = DATA_SOURCE.split(".parquet")[0][-7:] + "-01 00:00:00"
-
-
-        # Filter and select columns
-        ddf = ddf.loc[
-            ddf.tpep_pickup_datetime >= start_of_month,
-            ["tpep_pickup_datetime", "passenger_count", "VendorID"]
-        ]
-
-
-        # Optimize memory
-        ddf = ddf.map_partitions(optimize_to_fit_memory)
-        
-
-        # Set index, forward-fill, and resample hourly
-        ddf = (
-            ddf.set_index("tpep_pickup_datetime", sorted=True)
-            .ffill()
-            .resample("h")
-            .agg({"passenger_count": "sum", "VendorID": "count"})
-        )#.compute()
-
-        # # Optimize memory
-        # ddf = ddf.map_partitions(optimize_to_fit_memory)
-
-        # Convert to Pandas DataFrame
-        df = ddf.compute().reset_index()
-
-        # Rename columns
-        df.rename(
-            columns={"passenger_count": "passenger_demand", "VendorID": "taxi_demand"},
-            inplace=True
-        )
-
-        # Drop first/last row (edge effects)
-        if df.shape[0] > 2:
-            df.drop([0, df.shape[0]-1], inplace=True)
-
-        # Update global ddf
-        ddf = df
-
-        logger.info(f"===> Data ingestion complete! Shape: {df.shape}")
-        logger.info("===> Successfully processed ingest_data()")
-        return df
-
-    except Exception as e:
-        logger.error(f"ingest_data() failed: {e}", exc_info=True)
-        return pd.DataFrame()
-    
-
-
-# -----------------------------------------------------
-# ZenML Step: Data Cleaning
-# -----------------------------------------------------
-@step(
-    name="Data Cleaning",
-    enable_step_logs=True,
-    enable_artifact_metadata=True
-)
-def clean_data(data: Union[pd.DataFrame, dd.DataFrame]) -> Union[pd.DataFrame, dd.DataFrame, None]:
-    """
-    Clean the data by:
-    - Dropping duplicates and null values
-    - Converting datetime column
-    - Renaming key columns
-    - Removing extreme outliers
-    """
-
-    try:
-        logger.info("==> Processing clean_data()")
-
-        # Handle both Dask and Pandas
-        is_dask = isinstance(data, dd.DataFrame)
-        if is_dask:
-            data = data.compute()
-            logger.info("Converted Dask DataFrame to pandas for cleaning.")
-
-        # -----------------------------------
-        # Drop duplicates & NaNs
-        # -----------------------------------
-        data = data.drop_duplicates()
-        data = data.dropna(axis=0, how="any")
-
-        # -----------------------------------
-        # Standardize datetime and columns
-        # -----------------------------------
-        if "tpep_pickup_datetime" in data.columns:
-            data["timestamp"] = pd.to_datetime(data["tpep_pickup_datetime"], errors="coerce")
-            data.drop(columns=["tpep_pickup_datetime"], inplace=True)
-
-        data.rename(
-            columns={
-                "passenger_count": "passenger_demand",
-                "VendorID": "taxi_demand",
-            },
-            inplace=True,
-        )
-
-        # -----------------------------------
-        # Drop duplicates on timestamp
-        # -----------------------------------
-        before_dupes = len(data)
-        data.drop_duplicates(subset=["timestamp"], inplace=True)
-        after_dupes = len(data)
-        logger.info(f"Removed {before_dupes - after_dupes} duplicate timestamps")
-
-        # -----------------------------------
-        # Handle Outliers (IQR method)
-        # -----------------------------------
-        for col in ["passenger_demand", "taxi_demand"]:
-            if col in data.columns:
-                Q1 = data[col].quantile(0.25)
-                Q3 = data[col].quantile(0.75)
-                IQR = Q3 - Q1
-                lower = Q1 - 1.5 * IQR
-                upper = Q3 + 1.5 * IQR
-                before = len(data)
-                data = data[(data[col] >= lower) & (data[col] <= upper)]
-                after = len(data)
-                logger.info(f"{col}: removed {before - after} outliers (IQR bounds [{lower:.2f}, {upper:.2f}])")
-
-        # -----------------------------------
-        # Final summary
-        # -----------------------------------
-        data.sort_values("timestamp", inplace=True)
-        logger.info(f"Final shape after cleaning: {data.shape}")
-        logger.info("==> Successfully processed clean_data()")
-
-        return data
-
-    except Exception as e:
-        logger.error(f"==> Error in clean_data(): {e}")
-        return None
-    
 
 
 # -----------------------------------------------------
@@ -243,9 +58,9 @@ def add_temporal_features(dataframe: pd.DataFrame, datetime_variable: str = 'tim
         # Merge new features back into the original dataframe
         dataframe = pd.concat([dataframe, temporal_features], axis=1)
 
-        logger.info(f"===> Temporal features added: {list(temporal_features.columns)}")
-        logger.info(f"===> Data shape after adding temporal features: {dataframe.shape}")
-        logger.info("===> Successfully processed add_temporal_features()")
+        logger.info(f"Temporal features added: {list(temporal_features.columns)}")
+        logger.info(f"Data shape after adding temporal features: {dataframe.shape}")
+        logger.info("Successfully processed add_temporal_features()")
         return dataframe
 
     except Exception as e:
@@ -289,9 +104,9 @@ def add_lag_features(df: pd.DataFrame) -> pd.DataFrame:
             if col not in df.columns:  # avoid overwriting
                 df[col] = lag_df[col].values
         
-        logger.info(f"===> Lag features added: {list(lag_df.columns)}")
-        logger.info(f"===> Data shape after adding lag features: {df.shape}")
-        logger.info("===> Successfully processed add_lag_features()")
+        logger.info(f"Lag features added: {list(lag_df.columns)}")
+        logger.info(f"Data shape after adding lag features: {df.shape}")
+        logger.info("Successfully processed add_lag_features()")
         return df
     
     except Exception as e:
@@ -352,9 +167,9 @@ def add_window_features(
             if col not in df.columns:  # avoid overwriting
                 df[col] = window_df[col].values
 
-        logger.info(f"===> Window features added: {list(window_df.columns[1:])}")
-        logger.info(f"===> Data shape after adding window features: {df.shape}")
-        logger.info("===> Successfully processed add_window_features()")
+        logger.info(f"Window features added: {list(window_df.columns[1:])}")
+        logger.info(f"Data shape after adding window features: {df.shape}")
+        logger.info("Successfully processed add_window_features()")
         return df
 
     except Exception as e:
@@ -414,7 +229,7 @@ def add_expanding_window_features(
             if col not in df.columns:  # avoid overwriting
                 df[col] = exp_df[col].values
 
-        logger.info(f"===> Expanding window features added: {list(exp_df.columns[1:])}")
+        logger.info(f"Expanding window features added: {list(exp_df.columns[1:])}")
         logger.info(f"===> Data shape after adding expanding window features: {df.shape}")
         logger.info("===> Successfully processed add_expanding_window_features()")
         return df
@@ -425,15 +240,18 @@ def add_expanding_window_features(
 
 
 # -----------------------------------------------------
-# ZenML Pipeline: lets call the all feature_engineering steps
+# ZenML Pipeline: lets call the steps
 # -----------------------------------------------------
+@step(name="Feature Engineering Pipeline", enable_step_logs=True, enable_artifact_metadata=True)
 def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
+    if hasattr(df, "read"):
+        df = df.read() # Ensure df is a DataFrame
     logger.info("Starting feature engineering pipeline")
     temp_df = add_temporal_features(dataframe=df)
     lagged_df = add_lag_features(temp_df)
     windowed_df = add_window_features(lagged_df)
     expanded_df = add_expanding_window_features(windowed_df)
-
+    
     # -----------------------------
     # Handle NaNs created by feature engineering
     # -----------------------------
@@ -448,20 +266,13 @@ def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
     logger.info("Feature engineering pipeline completed")
     return expanded_df
 
-# -----------------------------------------------------
-# ZenML Pipeline: Feature Pipeline
-# -----------------------------------------------------
-def feature_pipeline():
-    raw_df = ingest_data(DATA_SOURCE=DATA_SOURCE)
-    clean_df = clean_data(raw_df)
-    feature_engineered_df = feature_engineering(clean_df)
-    return feature_engineered_df
 
-# -----------------------------------------------------
-# Example: call ingestion step locally
-# -----------------------------------------------------
-if __name__ == "__main__":
-    df = feature_pipeline()
+# if __name__ == "__main__":
+#     df = pd.read_csv("/media/sheikh/F262ADC762AD90C1/backup/ML/yellow-taxi-demand-analysis/3_Data/processed/2025_hourly_all_cleaned.csv")
+#     cleaned_data = feature_engineering(df)
 
-    print(df.head())
-    print(f"Data shape: {df.shape}")
+#     if cleaned_data is not None:
+#         logger.info(f"Final cleaned data shape: {cleaned_data.shape}")
+#         print(cleaned_data.head())
+#     else:
+#         logger.error("Feature engineering failed.")

@@ -7,13 +7,16 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 sys.path.append(os.path.join(current, "h_steps"))
 
+
 from logs import configure_logger
 logger = configure_logger()
+
 
 from zenml import pipeline
 from configs.config import DATA_SOURCE
 from h_steps.a_ingest import ingest_data
 from h_steps.b_clean import clean_data
+from h_steps.c_featureEngineering import feature_engineering
 
 
 # -----------------------------------------------------
@@ -30,10 +33,9 @@ def run_pipeline():
     """
     try:
         logger.info(f'==> Processing run_pipeline()')
-        # Step 1: Ingest
         data = ingest_data(DATA_SOURCE=DATA_SOURCE)
-        # Step 2: Clean
         cleaned_data = clean_data(data)
+        featured_data = feature_engineering(cleaned_data)
         logger.info(f'==> Successfully processed run_pipeline()')
     except Exception as e:
         logger.error(f"Pipeline failed: {e}")
