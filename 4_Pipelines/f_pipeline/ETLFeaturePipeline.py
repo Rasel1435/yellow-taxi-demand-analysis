@@ -24,7 +24,9 @@ from h_steps.c_featureEngineering import feature_engineering
 # -----------------------------------------------------
 @pipeline(
         name='ETLFeaturePipelineUberTaxiDemand',
-        enable_step_logs=True
+        enable_step_logs=True,
+        enable_cache=False,
+        
     )
 
 def run_pipeline():
