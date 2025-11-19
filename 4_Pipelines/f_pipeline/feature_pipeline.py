@@ -14,6 +14,8 @@ from feature_engine.timeseries.forecasting import (
     WindowFeatures, 
     ExpandingWindowFeatures
 )
+from feature_engine.selection import SmartCorrelatedSelection, RecursiveFeatureElimination
+from sklearn.tree import DecisionTreeRegressor
 
 
 
@@ -48,10 +50,9 @@ def optimize_to_fit_memory(ddf: dd.DataFrame) -> dd.DataFrame:
         return ddf
 
 # -----------------------------------------------------
-# ZenML Step: Ingest Data
+# Ingest Data
 # -----------------------------------------------------
-@step(name="Data Ingestion", enable_step_logs=True)
-def ingest_data(DATA_SOURCE: str) -> Union[pd.DataFrame, None]:
+def ingest_data(DATA_SOURCE: str) ->  None:
     global ddf
     try:
         logger.info(f"===> Starting data ingestion from: {DATA_SOURCE}")
@@ -116,13 +117,8 @@ def ingest_data(DATA_SOURCE: str) -> Union[pd.DataFrame, None]:
 
 
 # -----------------------------------------------------
-# ZenML Step: Data Cleaning
+# Data Cleaning
 # -----------------------------------------------------
-@step(
-    name="Data Cleaning",
-    enable_step_logs=True,
-    enable_artifact_metadata=True
-)
 def clean_data(data: Union[pd.DataFrame, dd.DataFrame]) -> Union[pd.DataFrame, dd.DataFrame, None]:
     """
     Clean the data by:
@@ -201,9 +197,8 @@ def clean_data(data: Union[pd.DataFrame, dd.DataFrame]) -> Union[pd.DataFrame, d
 
 
 # -----------------------------------------------------
-# ZenML Step: add Temporal Features
+# add Temporal Features
 # -----------------------------------------------------
-@step(name="Add Temporal Features", enable_step_logs=True, enable_artifact_metadata=True)
 def add_temporal_features(dataframe: pd.DataFrame, datetime_variable: str = 'timestamp') -> pd.DataFrame:
     """
     Adds temporal features to the dataframe using Feature-engine's DatetimeFeatures.
@@ -254,9 +249,8 @@ def add_temporal_features(dataframe: pd.DataFrame, datetime_variable: str = 'tim
 
 
 # -----------------------------------------------------
-# ZenML Step: add Lag Features
+# add Lag Features
 # -----------------------------------------------------
-@step(name="Add Lag Features", enable_step_logs=True, enable_artifact_metadata=True)
 def add_lag_features(df: pd.DataFrame) -> pd.DataFrame:
     """
     Adds lag features for 'passenger_demand' and 'taxi_demand'.
@@ -300,9 +294,8 @@ def add_lag_features(df: pd.DataFrame) -> pd.DataFrame:
     
 
 # -----------------------------------------------------
-# ZenML Step: add Window Features
+# add Window Features
 # -----------------------------------------------------
-@step(name="Add Window Features", enable_step_logs=True, enable_artifact_metadata=True)
 def add_window_features(
     df: pd.DataFrame,
     variables: list = ['passenger_demand', 'taxi_demand'],
@@ -363,9 +356,8 @@ def add_window_features(
 
 
 # -----------------------------------------------------
-# ZenML Step: add Expanding Window Features
+# add Expanding Window Features
 # -----------------------------------------------------
-@step(name="Add Expanding Window Features", enable_step_logs=True, enable_artifact_metadata=True)
 def add_expanding_window_features(
     df: pd.DataFrame,
     variables: list = ['passenger_demand', 'taxi_demand'],
@@ -423,11 +415,14 @@ def add_expanding_window_features(
         logger.error(f"Error in add_expanding_window_features(): {e}", exc_info=True)
         return df
 
-
 # -----------------------------------------------------
-# ZenML Pipeline: lets call the all feature_engineering steps
+# Lets call the all feature_engineering steps
 # -----------------------------------------------------
 def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
+    # Convert Dask to Pandas
+    if isinstance(df, dd.DataFrame):
+        logger.info("Converting Dask DataFrame to Pandas...")
+        df = df.compute()
     logger.info("Starting feature engineering pipeline")
     temp_df = add_temporal_features(dataframe=df)
     lagged_df = add_lag_features(temp_df)
@@ -448,14 +443,113 @@ def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
     logger.info("Feature engineering pipeline completed")
     return expanded_df
 
+
+
 # -----------------------------------------------------
-# ZenML Pipeline: Feature Pipeline
+# Feature Selection: Hybrid Approach
+# -----------------------------------------------------
+def SelectBestFeatures(df: Union[pd.DataFrame, dd.DataFrame]) -> Union[pd.DataFrame, None]:
+    """
+    Performs hybrid feature selection using:
+      - SmartCorrelatedSelection (correlation-based)
+      - Recursive Feature Elimination (tree-based)
+
+    Returns a DataFrame containing:
+      timestamp + selected_features + taxi_demand
+    """
+
+    try:
+        logger.info("==> Starting SelectBestFeatures()")
+        
+        # Convert Dask to Pandas
+        if isinstance(df, dd.DataFrame):
+            logger.info("Converting Dask DataFrame to Pandas...")
+            df = df.compute()
+
+        # ------------------------------------------
+        # 1. Validate required columns
+        # ------------------------------------------
+        required_cols = ['timestamp', 'taxi_demand']
+        for col in required_cols:
+            if col not in df.columns:
+                raise ValueError(f"Missing required column: {col}")
+
+        # ------------------------------------------
+        # 2. Prepare X, y
+        # ------------------------------------------
+        logger.info("Step 1: Splitting X and y")
+
+        X = df.drop(columns=['timestamp', 'passenger_demand', 'taxi_demand'], errors='ignore')
+        y = df['taxi_demand']
+        timestamp = df['timestamp']
+
+        # ------------------------------------------
+        # 3. Smart Correlated Selection
+        # ------------------------------------------
+        logger.info("Step 2: Running SmartCorrelatedSelection")
+
+        scs = SmartCorrelatedSelection(
+            method='pearson',
+            threshold=0.5,
+            missing_values='ignore',
+            selection_method='variance',
+            confirm_variables=False
+        )
+        scs_selected = set(scs.fit_transform(X).columns)
+
+        logger.info(f"SCS selected features: {len(scs_selected)}")
+
+        # ------------------------------------------
+        # 4. Recursive Feature Elimination (RFE)
+        # ------------------------------------------
+        logger.info("Step 3: Running RecursiveFeatureElimination")
+
+        rfe = RecursiveFeatureElimination(
+            estimator=DecisionTreeRegressor(max_depth=3),
+            scoring='r2',
+            cv=3,
+            threshold=0.01,
+            variables=None,
+            confirm_variables=False
+        )
+
+        rfe_selected = set(rfe.fit_transform(X, y).columns)
+
+        logger.info(f"RFE selected features: {len(rfe_selected)}")
+
+        # ------------------------------------------
+        # 5. Combine features
+        # ------------------------------------------
+        logger.info("Step 4: Combining selected features")
+
+        final_features = list(scs_selected.union(rfe_selected))
+        logger.info(f"Total final selected features: {len(final_features)}")
+
+        # ------------------------------------------
+        # 6. Rebuild filtered DataFrame
+        # ------------------------------------------
+        logger.info("Step 5: Creating filtered dataframe")
+
+        final_df = df[['timestamp'] + final_features + ['taxi_demand']]
+
+        logger.info("==> Successfully finished SelectBestFeatures()")
+        return final_df
+
+    except Exception as e:
+        logger.error(f"Error in SelectBestFeatures(): {e}")
+        return None
+    
+
+
+# -----------------------------------------------------
+# Pipeline: Feature Pipeline
 # -----------------------------------------------------
 def feature_pipeline():
     raw_df = ingest_data(DATA_SOURCE=DATA_SOURCE)
     clean_df = clean_data(raw_df)
     feature_engineered_df = feature_engineering(clean_df)
-    return feature_engineered_df
+    feature_selected_df = SelectBestFeatures(feature_engineered_df)
+    return feature_selected_df
 
 # -----------------------------------------------------
 # Example: call ingestion step locally

@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from dask import dataframe as dd
 from zenml import step
 from logs import configure_logger
 from feature_engine.datetime import DatetimeFeatures
@@ -244,8 +245,10 @@ def add_expanding_window_features(
 # -----------------------------------------------------
 @step(name="Feature Engineering Pipeline", enable_step_logs=True, enable_artifact_metadata=True)
 def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
-    if hasattr(df, "read"):
-        df = df.read() # Ensure df is a DataFrame
+    # Convert Dask to Pandas
+    if isinstance(df, dd.DataFrame):
+        logger.info("Converting Dask DataFrame to Pandas...")
+        df = df.compute()
     logger.info("Starting feature engineering pipeline")
     temp_df = add_temporal_features(dataframe=df)
     lagged_df = add_lag_features(temp_df)
@@ -267,12 +270,18 @@ def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
     return expanded_df
 
 
-# if __name__ == "__main__":
-#     df = pd.read_csv("/media/sheikh/F262ADC762AD90C1/backup/ML/yellow-taxi-demand-analysis/3_Data/processed/c_2025_hourly_all_cleaned.csv")
-#     cleaned_data = feature_engineering(df)
+# -----------------------------------------------------
+# For testing purposes
+# -----------------------------------------------------
+"""
+if __name__ == "__main__":
+    df = pd.read_csv("/media/sheikh/F262ADC762AD90C1/backup/ML/yellow-taxi-demand-analysis/3_Data/processed/c_2025_hourly_all_cleaned.csv")
+    cleaned_data = feature_engineering(df)
 
-#     if cleaned_data is not None:
-#         logger.info(f"Final cleaned data shape: {cleaned_data.shape}")
-#         print(cleaned_data.head())
-#     else:
-#         logger.error("Feature engineering failed.")
+    if cleaned_data is not None:
+        logger.info(f"Final cleaned data shape: {cleaned_data.shape}")
+        print(cleaned_data.head())
+    else:
+        logger.error("Feature engineering failed.")
+
+"""

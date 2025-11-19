@@ -139,8 +139,14 @@ def ingest_data(DATA_SOURCE: str) -> Union[pd.DataFrame, None]:
         return pd.DataFrame()
 
 
-# if __name__ == "__main__":
-#     df = ingest_data(DATA_SOURCE=DATA_SOURCE)
 
-#     print(df.head())
-#     print(f"Data shape: {df.shape}" if df is not None else "Ingestion failed.")
+# -----------------------------------------------------
+# For testing purposes
+# -----------------------------------------------------
+"""
+if __name__ == "__main__":
+    df = ingest_data(DATA_SOURCE=DATA_SOURCE)
+
+    print(df.head())
+    print(f"Data shape: {df.shape}" if df is not None else "Ingestion failed.")
+"""

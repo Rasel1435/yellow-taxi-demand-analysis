@@ -87,13 +87,19 @@ def clean_data(data: Union[pd.DataFrame, dd.DataFrame]) -> Union[pd.DataFrame, d
         logger.error(f"==> Error in clean_data(): {e}")
         return None
     
+    
+# -----------------------------------------------------
+# For testing purposes
+# -----------------------------------------------------
+"""
+if __name__ == "__main__":
+    df = pd.read_csv("/media/sheikh/F262ADC762AD90C1/backup/ML/yellow-taxi-demand-analysis/3_Data/processed/2025_hourly_all_EDA_cleaned.csv")
+    cleaned_data = clean_data(df)
 
-# if __name__ == "__main__":
-#     df = pd.read_csv("/media/sheikh/F262ADC762AD90C1/backup/ML/yellow-taxi-demand-analysis/3_Data/processed/2025_hourly_all_EDA_cleaned.csv")
-#     cleaned_data = clean_data(df)
+    if cleaned_data is not None:
+        print(cleaned_data.head())
+        print(f"Cleaned data shape: {cleaned_data.shape}")
+    else:
+        print("Data cleaning failed.")
 
-#     if cleaned_data is not None:
-#         print(cleaned_data.head())
-#         print(f"Cleaned data shape: {cleaned_data.shape}")
-#     else:
-#         print("Data cleaning failed.")
+"""

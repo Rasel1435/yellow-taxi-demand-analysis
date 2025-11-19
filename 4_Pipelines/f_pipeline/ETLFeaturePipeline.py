@@ -17,6 +17,7 @@ from configs.config import DATA_SOURCE
 from h_steps.a_ingest import ingest_data
 from h_steps.b_clean import clean_data
 from h_steps.c_featureEngineering import feature_engineering
+from h_steps.d_featuresSelection import SelectBestFeatures
 
 
 # -----------------------------------------------------
@@ -38,6 +39,7 @@ def run_pipeline():
         data = ingest_data(DATA_SOURCE=DATA_SOURCE)
         cleaned_data = clean_data(data)
         featured_data = feature_engineering(cleaned_data)
+        selected_features = SelectBestFeatures(featured_data)
         logger.info(f'==> Successfully processed run_pipeline()')
     except Exception as e:
         logger.error(f"Pipeline failed: {e}")
