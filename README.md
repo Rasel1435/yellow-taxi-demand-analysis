@@ -170,22 +170,20 @@ Do **NOT** commit the **.zen/** folder — add it to **.gitignore**:
 .zen/
 ```
 ### 🔍 0.1 Verify ZenML Configuration
-These commands help you inspect your ZenML setup:
+Shows active project, stack, server, and versions:
 ```bash
-zenml config
-or
 zenml status
 ```
-Shows active project, stack, and settings.
+List available stacks.
 ```bash
 zenml stack list
-or
+```
+List available projects
+```bash
 zenml project list
 ```
-Lists available stacks (local stack is created by default).
+Describe active project
 ```bash
-zenml workspace list
-or
 zenml project describe
 ```
 Lists available workspaces.
