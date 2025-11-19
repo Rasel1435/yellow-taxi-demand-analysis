@@ -208,3 +208,6 @@ __marimo__/
 
 # Data files
 3_Data/
+
+# ZenML
+.zen/
