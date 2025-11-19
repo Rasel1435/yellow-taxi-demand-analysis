@@ -102,3 +102,110 @@ zenml up
 zenml up --port 8240
 ```
 💡 **Recommendation**: Usually, after zenml login --local, you **don’t need to run** zenml up **multiple times** unless the daemon was stopped or crashed.
+
+
+
+
+### 1️⃣ Install Required ZenML
+In your venv virtual environment:
+```bash
+# Airflow orchestrator for pipelines
+pip install "zenml[airflow]"
+
+# S3 artifact store support
+pip install "zenml[s3]"
+
+# Docker deployment support
+pip install "zenml[docker]"
+
+# Optional: Kubernetes deployer if you want production-grade deployment
+pip install "zenml[kubeflow]"
+
+# Optional: HuggingFace deployment
+pip install "zenml[huggingface]"
+
+```
+### 2️⃣ Register Components in ZenML
+Orchestrator (Airflow)
+```bash
+zenml orchestrator register airflow_orchestrator --flavor=airflow
+```
+Artifact Store (S3)
+```bash
+zenml artifact-store register my_s3_store --flavor=s3 --path=s3://your-bucket-name
+```
+Replace your-bucket-name with your actual AWS S3 bucket. Make sure your AWS credentials are set in environment variables: AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.
+
+Deployer (Docker for model APIs)
+```bash
+zenml deployer register docker_deployer --flavor=docker
+```
+Optional: HuggingFace Deployer
+```zenml deployer register huggingface_deployer --flavor=huggingface
+```
+For HuggingFace deployment, you also need a HuggingFace account and token:
+```export HF_TOKEN="your_hf_token"
+```
+### 3️⃣ Register & Activate a New Stack
+```bash
+zenml stack register my_job_stack \
+  -o airflow_orchestrator \
+  -a my_s3_store \
+  -d docker_deployer
+
+zenml stack set my_job_stack
+
+```
+✅ Check the stack:
+```bash
+zenml stack describe
+
+```
+It should show:
+- Orchestrator: Airflow
+- Artifact Store: S3
+- Deployer: Docker
+
+### 4️⃣ Run Your Pipeline
+Make sure your pipeline script is set up as before:
+```bash
+python 4_Pipelines/run_pipeline.py
+```
+- Steps will run in Airflow
+- Artifacts (datasets, models, logs) are stored in S3
+- Docker deployment ready for the trained model
+
+### 5️⃣ Deploy Your Model as a Live API
+**Option A: Docker Deployment (fast and simple)**
+```bash
+# Register your model (after training in pipeline)
+zenml model deployer register_model --stack my_job_stack --model_path=path/to/model --deployer docker_deployer --name taxi_demand_api
+
+```
+```bash
+# Start the API
+zenml model deploy start --name taxi_demand_api
+
+```
+- Your model will run as a **REST API locally**
+- URL is usually: http://localhost:5000/predict
+
+**Option B: HuggingFace Deployment (cloud, impressive)**
+```bash
+# Register the HuggingFace deployer
+zenml deployer register huggingface_deployer --flavor=huggingface
+
+# Deploy model to HuggingFace Spaces
+zenml model deployer register_model --model_path=path/to/model --deployer huggingface_deployer --name taxi_demand_hf
+
+```
+- Users can call your model API directly from **HuggingFace cloud**
+- Great for showing **international cloud ML skills** on your resume
+
+
+
+
+
+
+```bash
+```

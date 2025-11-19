@@ -152,7 +152,16 @@ touch requirements.txt logs.py zenmlNotes.txt configs/config.yaml
 
 ---
 
+### 9️⃣ ZenML & Project
+```bash
+## ZenML Stack Setup
 
+- Pipeline orchestrated with **Airflow**
+- Artifacts stored in **S3**
+- Model deployment via **Docker** (local API) and optionally **HuggingFace** (cloud API)
+- ZenML stack configuration included in `zenml/stack.yml` (no secrets)
+
+```
 
 ### 📘 Next Improvements
 
