@@ -84,3 +84,21 @@ http://127.0.0.1:8237/
 ```bash
 @pipeline(enable_cache=True)
 ```
+
+### Stop the existing server (if needed)
+```bash
+zenml down
+```
+Or kill the daemon manually:
+```bash
+kill -9 9966
+```
+Then you can restart with:
+```bash
+zenml up
+```
+### If you want to run on a different port:
+```bash
+zenml up --port 8240
+```
+💡 **Recommendation**: Usually, after zenml login --local, you **don’t need to run** zenml up **multiple times** unless the daemon was stopped or crashed.
