@@ -165,10 +165,25 @@ zenml init
 This command creates the .zen/ directory and sets up your local ZenML stack and workspace.
 
 ### 📌 Important:
-Do **NOT** commit the .zen/ folder — add it to .gitignore:
+Do **NOT** commit the **.zen/** folder — add it to **.gitignore**:
 ```bash
 .zen/
 ```
+### 🔍 0.1 Verify ZenML Configuration
+These commands help you inspect your ZenML setup:
+```bash
+zenml config
+```
+Shows active project, stack, and settings.
+```bash
+zenml stack list
+```
+Lists available stacks (local stack is created by default).
+```bash
+zenml workspace list
+```
+Lists available workspaces.
+
 
 ### 1️⃣ Install ZenML and server dependencies
 
