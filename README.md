@@ -175,6 +175,7 @@ ZenML will execute the steps:
 2. **Data Cleaning** (b_clean.py)
 3. **Feature Engineering** (c_featureEngineering.py)
 4. **Feature Selection** (d_featuresSelection.py)
+   
 Each step is logged automatically, and the output artifacts (dataframes, feature lists) are tracked.
 
 ### 3️⃣ Start ZenML dashboard
@@ -187,6 +188,7 @@ zenml up
 ```
 
 The dashboard will be available at:
+
 http://127.0.0.1:8237/
 
 
