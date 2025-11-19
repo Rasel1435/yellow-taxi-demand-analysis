@@ -156,6 +156,20 @@ touch requirements.txt logs.py zenmlNotes.txt configs/config.yaml
 
 All ETL, feature engineering, and feature selection steps are orchestrated with **ZenML**. You can run the full pipeline and monitor each step via the ZenML dashboard.
 
+### 🛠 0️⃣ Initialize ZenML (Required)
+
+Before running any pipeline, initialize ZenML in your project root:
+```bash
+zenml init
+```
+This command creates the .zen/ directory and sets up your local ZenML stack and workspace.
+
+### 📌 Important:
+Do **NOT** commit the .zen/ folder — add it to .gitignore:
+```bash
+.zen/
+```
+
 ### 1️⃣ Install ZenML and server dependencies
 
 Make sure ZenML and the server extras are installed:
