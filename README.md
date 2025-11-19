@@ -194,8 +194,8 @@ Lists available workspaces.
 Make sure ZenML and the server extras are installed:
 
 ```bash
-pip install zenml==0.91.1
-pip install "zenml[server]==0.91.0"
+pip install zenml==0.91.2
+pip install "zenml[server]==0.91.2"
 ```
 ### 2️⃣ Run the full pipeline
 
