@@ -16,7 +16,8 @@ from feature_engine.timeseries.forecasting import (
 )
 from feature_engine.selection import SmartCorrelatedSelection, RecursiveFeatureElimination
 from sklearn.tree import DecisionTreeRegressor
-
+from sklearn.preprocessing import StandardScaler
+from typing import Tuple
 
 
 # -----------------------------------------------------
@@ -538,7 +539,66 @@ def SelectBestFeatures(df: Union[pd.DataFrame, dd.DataFrame]) -> Union[pd.DataFr
     except Exception as e:
         logger.error(f"Error in SelectBestFeatures(): {e}")
         return None
-    
+
+# -----------------------------------------------------
+# Normalize and Scale Features
+# -----------------------------------------------------
+
+def scale_features(df: pd.DataFrame) -> Tuple[pd.DataFrame, StandardScaler]:
+    """
+    Normalizes and scales features using StandardScaler.
+
+    Returns:
+      - DataFrame containing timestamp + scaled features + taxi_demand
+      - Fitted StandardScaler object
+    """
+    try:
+        logger.info("==> Starting scale_features()")
+        
+        # Validate required columns
+        required_cols = ['timestamp', 'taxi_demand']
+        for col in required_cols:
+            if col not in df.columns:
+                raise ValueError(f"Missing required column: {col}")
+
+        # Split features and target
+        X = df.drop(columns=['timestamp', 'taxi_demand'], errors='ignore')
+        y = df['taxi_demand']
+        timestamp = df['timestamp']
+
+        # -------------------------------
+        # DEBUG: Print before scaling
+        # -------------------------------
+        logger.info("==> Before scaling: \n%s", X.head())
+        logger.info("==> Shape before scaling: %s", X.shape)
+
+        # Scale features
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
+        X_scaled_df = pd.DataFrame(X_scaled, columns=X.columns, index=df.index)
+
+         # -------------------------------
+        # DEBUG: Print after scaling
+        # -------------------------------
+        logger.info("==> After scaling: \n%s", X_scaled_df.head())
+        logger.info("==> Shape after scaling: %s", X_scaled_df.shape)
+        logger.info("==> Scaler mean values: %s", scaler.mean_)
+
+
+        # Reattach timestamp and target
+        X_scaled_df['timestamp'] = timestamp.values
+        X_scaled_df['taxi_demand'] = y.values
+
+        # Reorder columns (optional)
+        cols = ['timestamp'] + list(X.columns) + ['taxi_demand']
+        X_scaled_df = X_scaled_df[cols]
+
+        logger.info("Normalization and Scaling completed successfully.")
+        return X_scaled_df, scaler
+
+    except Exception as e:
+        logger.error(f"Error in scale_features: {e}")
+        raise ValueError(f"Error in scale_features: {e}")
 
 
 # -----------------------------------------------------
@@ -549,7 +609,8 @@ def feature_pipeline():
     clean_df = clean_data(raw_df)
     feature_engineered_df = feature_engineering(clean_df)
     feature_selected_df = SelectBestFeatures(feature_engineered_df)
-    return feature_selected_df
+    scaled_features_df, scaler = scale_features(feature_selected_df)
+    return scaled_features_df, scaler
 
 # -----------------------------------------------------
 # Example: call ingestion step locally
