@@ -141,10 +141,12 @@ Deployer (Docker for model APIs)
 zenml deployer register docker_deployer --flavor=docker
 ```
 Optional: HuggingFace Deployer
-```zenml deployer register huggingface_deployer --flavor=huggingface
+```bash
+zenml deployer register huggingface_deployer --flavor=huggingface
 ```
 For HuggingFace deployment, you also need a HuggingFace account and token:
-```export HF_TOKEN="your_hf_token"
+```bash
+export HF_TOKEN="your_hf_token"
 ```
 ### 3️⃣ Register & Activate a New Stack
 ```bash
