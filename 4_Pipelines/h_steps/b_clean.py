@@ -12,7 +12,9 @@ logger = configure_logger()
     enable_step_logs=True,
     enable_artifact_metadata=True
 )
-def clean_data(data: Union[pd.DataFrame, dd.DataFrame]) -> Union[pd.DataFrame, dd.DataFrame, None]:
+def clean_data(
+    data: Union[pd.DataFrame, dd.DataFrame]
+    ) -> Union[pd.DataFrame, dd.DataFrame, None]:
     """
     Clean the data by:
     - Dropping duplicates and null values
@@ -78,8 +80,9 @@ def clean_data(data: Union[pd.DataFrame, dd.DataFrame]) -> Union[pd.DataFrame, d
         # Final summary
         # -----------------------------------
         data.sort_values("timestamp", inplace=True)
-        logger.info(f"Final shape after cleaning: {data.shape}")
-        logger.info("==> Successfully processed clean_data()")
+        logger.info(f"==> Final cleaned data head:\n{data.head()}")
+        logger.info(f"==> Final cleaned data shape: {data.shape}")
+        logger.info(f"==> Successfully processed clean_data()")
 
         return data
 

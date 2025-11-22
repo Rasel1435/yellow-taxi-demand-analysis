@@ -17,7 +17,9 @@ logger = configure_logger()
     enable_step_logs=True,
     enable_artifact_metadata=True
 )
-def scale_features(df: pd.DataFrame) -> Tuple[pd.DataFrame, StandardScaler]:
+def scale_features(
+    df: pd.DataFrame
+    ) -> Tuple[pd.DataFrame, StandardScaler]:
     """
     Normalizes and scales features using StandardScaler.
 
@@ -66,7 +68,10 @@ def scale_features(df: pd.DataFrame) -> Tuple[pd.DataFrame, StandardScaler]:
         cols = ['timestamp'] + list(X.columns) + ['taxi_demand']
         X_scaled_df = X_scaled_df[cols]
 
-        logger.info("Normalization and Scaling completed successfully.")
+        logger.info("==> Scaled DataFrame Head:\n%s", X_scaled_df.head())
+        logger.info(f"==> Final Scaled DataFrame Shape: {X_scaled_df.shape}")
+        logger.info(f"==> Normalization and Scaling completed successfully.")
+
         return X_scaled_df, scaler
 
     except Exception as e:

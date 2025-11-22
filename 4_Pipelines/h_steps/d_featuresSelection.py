@@ -18,7 +18,9 @@ logger = configure_logger()
     enable_step_logs=True,
     enable_artifact_metadata=True
 )
-def SelectBestFeatures(df: Union[pd.DataFrame, dd.DataFrame]) -> Union[pd.DataFrame, None]:
+def SelectBestFeatures(
+    df: Union[pd.DataFrame, dd.DataFrame]
+    ) -> Union[pd.DataFrame, None]:
     """
     Performs hybrid feature selection using:
       - SmartCorrelatedSelection (correlation-based)
@@ -102,7 +104,10 @@ def SelectBestFeatures(df: Union[pd.DataFrame, dd.DataFrame]) -> Union[pd.DataFr
 
         final_df = df[['timestamp'] + final_features + ['taxi_demand']]
 
-        logger.info("==> Successfully finished SelectBestFeatures()")
+        logger.info(f"==> Final Selected Features DataFrame Head:\n{final_df.head()}")
+        logger.info(f"==> Final Selected Features DataFrame Shape: {final_df.shape}")
+        logger.info(f"==> Successfully finished SelectBestFeatures()")
+
         return final_df
 
     except Exception as e:

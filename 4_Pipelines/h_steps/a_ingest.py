@@ -130,8 +130,10 @@ def ingest_data(DATA_SOURCE: str) -> Union[pd.DataFrame, None]:
         # -----------------------------------------------------
         # Done
         # -----------------------------------------------------
+        logger.info(f"===> Data ingestion complete! Final head:\n{df.head()}")
         logger.info(f"===> Data ingestion complete! Final shape: {df.shape}")
-        logger.info("===> Successfully processed ingest_data()")
+        logger.info(f"===> Successfully processed ingest_data()")
+
         return df
 
     except Exception as e:

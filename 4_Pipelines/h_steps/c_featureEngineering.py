@@ -19,8 +19,15 @@ logger = configure_logger()
 # -----------------------------------------------------
 # ZenML Step: add Temporal Features
 # -----------------------------------------------------
-@step(name="Add Temporal Features", enable_step_logs=True, enable_artifact_metadata=True)
-def add_temporal_features(dataframe: pd.DataFrame, datetime_variable: str = 'timestamp') -> pd.DataFrame:
+@step(
+    name="Add Temporal Features",
+    enable_step_logs=True, 
+    enable_artifact_metadata=True)
+
+def add_temporal_features(
+    dataframe: pd.DataFrame,
+    datetime_variable: str = 'timestamp'
+    ) -> pd.DataFrame:
     """
     Adds temporal features to the dataframe using Feature-engine's DatetimeFeatures.
 
@@ -72,7 +79,12 @@ def add_temporal_features(dataframe: pd.DataFrame, datetime_variable: str = 'tim
 # -----------------------------------------------------
 # ZenML Step: add Lag Features
 # -----------------------------------------------------
-@step(name="Add Lag Features", enable_step_logs=True, enable_artifact_metadata=True)
+@step(
+    name="Add Lag Features",
+    enable_step_logs=True,
+    enable_artifact_metadata=True
+    )
+
 def add_lag_features(df: pd.DataFrame) -> pd.DataFrame:
     """
     Adds lag features for 'passenger_demand' and 'taxi_demand'.
@@ -118,7 +130,12 @@ def add_lag_features(df: pd.DataFrame) -> pd.DataFrame:
 # -----------------------------------------------------
 # ZenML Step: add Window Features
 # -----------------------------------------------------
-@step(name="Add Window Features", enable_step_logs=True, enable_artifact_metadata=True)
+@step(
+    name="Add Window Features",
+    enable_step_logs=True,
+    enable_artifact_metadata=True
+    )
+
 def add_window_features(
     df: pd.DataFrame,
     variables: list = ['passenger_demand', 'taxi_demand'],
@@ -181,7 +198,12 @@ def add_window_features(
 # -----------------------------------------------------
 # ZenML Step: add Expanding Window Features
 # -----------------------------------------------------
-@step(name="Add Expanding Window Features", enable_step_logs=True, enable_artifact_metadata=True)
+@step(
+    name="Add Expanding Window Features",
+    enable_step_logs=True,
+    enable_artifact_metadata=True
+    )
+
 def add_expanding_window_features(
     df: pd.DataFrame,
     variables: list = ['passenger_demand', 'taxi_demand'],
@@ -243,7 +265,12 @@ def add_expanding_window_features(
 # -----------------------------------------------------
 # ZenML Pipeline: lets call the steps
 # -----------------------------------------------------
-@step(name="Feature Engineering Pipeline", enable_step_logs=True, enable_artifact_metadata=True)
+@step(
+    name="Feature Engineering Pipeline",
+    enable_step_logs=True,
+    enable_artifact_metadata=True
+    )
+
 def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
     # Convert Dask to Pandas
     if isinstance(df, dd.DataFrame):
@@ -266,7 +293,10 @@ def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
     expanded_df[window_columns] = expanded_df[window_columns].bfill()
     expanded_df[exp_columns] = expanded_df[exp_columns].fillna(0)
 
-    logger.info("Feature engineering pipeline completed")
+    logger.info(f"==> Final feature engineered DataFrame Head:\n{expanded_df.head()}")
+    logger.info(f"==> Final feature engineered DataFrame Shape: {expanded_df.shape}")
+    logger.info(f"==> Feature engineering pipeline completed")
+    
     return expanded_df
 
 

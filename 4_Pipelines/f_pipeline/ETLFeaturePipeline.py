@@ -19,6 +19,7 @@ from h_steps.b_clean import clean_data
 from h_steps.c_featureEngineering import feature_engineering
 from h_steps.d_featuresSelection import SelectBestFeatures
 from h_steps.g_NormalizeScaling import scale_features
+from h_steps.h_dimensionalityReduction import ReduceDimensionality
 
 
 # -----------------------------------------------------
@@ -27,7 +28,7 @@ from h_steps.g_NormalizeScaling import scale_features
 @pipeline(
         name='ETLFeaturePipelineUberTaxiDemand',
         enable_step_logs=True,
-        enable_cache=True,
+        enable_cache=False,
         
     )
 
@@ -42,6 +43,7 @@ def run_pipeline():
         featured_data = feature_engineering(cleaned_data)
         selected_features = SelectBestFeatures(featured_data)
         scaled_features, scaler = scale_features(selected_features)
+        reduced_data = ReduceDimensionality(scaled_features)
         logger.info(f'==> Successfully processed run_pipeline()')
     except Exception as e:
         logger.error(f"Pipeline failed: {e}")
