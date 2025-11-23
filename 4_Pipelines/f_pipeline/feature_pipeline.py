@@ -5,9 +5,7 @@ import dask.dataframe as dd
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 from configs.config import DATA_SOURCE
 from typing import Union
-from zenml import step
 from logs import configure_logger
-from zenml import pipeline
 from feature_engine.datetime import DatetimeFeatures
 from feature_engine.timeseries.forecasting import (
     LagFeatures, 
@@ -18,13 +16,13 @@ from feature_engine.selection import SmartCorrelatedSelection, RecursiveFeatureE
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.preprocessing import StandardScaler
 from typing import Tuple
+from sklearn.decomposition import PCA
 
 
 # -----------------------------------------------------
 # Logger setup
 # -----------------------------------------------------
 logger = configure_logger()
-
 
 # -----------------------------------------------------
 # Global variable for Dask/Pandas DataFrame
@@ -57,11 +55,9 @@ def ingest_data(DATA_SOURCE: str) ->  None:
     global ddf
     try:
         logger.info(f"===> Starting data ingestion from: {DATA_SOURCE}")
-
         # Read raw Parquet data
         ddf = dd.read_parquet(DATA_SOURCE, engine="pyarrow")
 
-        
         # -----------------------------------------------------
         # Dynamically infer month start timestamp
         # Example: "yellow_tripdata_2025-01.parquet" → "2025-01-01 00:00:00"
@@ -75,11 +71,9 @@ def ingest_data(DATA_SOURCE: str) ->  None:
             ["tpep_pickup_datetime", "passenger_count", "VendorID"]
         ]
 
-
         # Optimize memory
         ddf = ddf.map_partitions(optimize_to_fit_memory)
         
-
         # Set index, forward-fill, and resample hourly
         ddf = (
             ddf.set_index("tpep_pickup_datetime", sorted=True)
@@ -107,6 +101,7 @@ def ingest_data(DATA_SOURCE: str) ->  None:
         # Update global ddf
         ddf = df
 
+        logger.info(f"===> Data ingestion complete! Final head:\n{df.head()}")
         logger.info(f"===> Data ingestion complete! Shape: {df.shape}")
         logger.info("===> Successfully processed ingest_data()")
         return df
@@ -186,6 +181,7 @@ def clean_data(data: Union[pd.DataFrame, dd.DataFrame]) -> Union[pd.DataFrame, d
         # Final summary
         # -----------------------------------
         data.sort_values("timestamp", inplace=True)
+        logger.info(f"Final head after cleaning:\n{data.head()}")
         logger.info(f"Final shape after cleaning: {data.shape}")
         logger.info("==> Successfully processed clean_data()")
 
@@ -200,7 +196,9 @@ def clean_data(data: Union[pd.DataFrame, dd.DataFrame]) -> Union[pd.DataFrame, d
 # -----------------------------------------------------
 # add Temporal Features
 # -----------------------------------------------------
-def add_temporal_features(dataframe: pd.DataFrame, datetime_variable: str = 'timestamp') -> pd.DataFrame:
+def add_temporal_features(
+        dataframe: pd.DataFrame, datetime_variable: str = 'timestamp'
+        ) -> pd.DataFrame:
     """
     Adds temporal features to the dataframe using Feature-engine's DatetimeFeatures.
 
@@ -240,6 +238,7 @@ def add_temporal_features(dataframe: pd.DataFrame, datetime_variable: str = 'tim
         dataframe = pd.concat([dataframe, temporal_features], axis=1)
 
         logger.info(f"===> Temporal features added: {list(temporal_features.columns)}")
+        logger.info(f"===> Temporal features head:\n{temporal_features.head()}")
         logger.info(f"===> Data shape after adding temporal features: {dataframe.shape}")
         logger.info("===> Successfully processed add_temporal_features()")
         return dataframe
@@ -285,6 +284,7 @@ def add_lag_features(df: pd.DataFrame) -> pd.DataFrame:
                 df[col] = lag_df[col].values
         
         logger.info(f"===> Lag features added: {list(lag_df.columns)}")
+        logger.info(f"===> Data head after adding lag features:\n{df.head()}")
         logger.info(f"===> Data shape after adding lag features: {df.shape}")
         logger.info("===> Successfully processed add_lag_features()")
         return df
@@ -347,6 +347,7 @@ def add_window_features(
                 df[col] = window_df[col].values
 
         logger.info(f"===> Window features added: {list(window_df.columns[1:])}")
+        logger.info(f"===> Data head after adding window features:\n{df.head()}")
         logger.info(f"===> Data shape after adding window features: {df.shape}")
         logger.info("===> Successfully processed add_window_features()")
         return df
@@ -408,6 +409,7 @@ def add_expanding_window_features(
                 df[col] = exp_df[col].values
 
         logger.info(f"===> Expanding window features added: {list(exp_df.columns[1:])}")
+        logger.info(f"===> Data head after adding expanding window features:\n{df.head()}")
         logger.info(f"===> Data shape after adding expanding window features: {df.shape}")
         logger.info("===> Successfully processed add_expanding_window_features()")
         return df
@@ -449,7 +451,9 @@ def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
 # -----------------------------------------------------
 # Feature Selection: Hybrid Approach
 # -----------------------------------------------------
-def SelectBestFeatures(df: Union[pd.DataFrame, dd.DataFrame]) -> Union[pd.DataFrame, None]:
+def SelectBestFeatures(
+        df: Union[pd.DataFrame, dd.DataFrame]
+        ) -> Union[pd.DataFrame, None]:
     """
     Performs hybrid feature selection using:
       - SmartCorrelatedSelection (correlation-based)
@@ -533,6 +537,8 @@ def SelectBestFeatures(df: Union[pd.DataFrame, dd.DataFrame]) -> Union[pd.DataFr
 
         final_df = df[['timestamp'] + final_features + ['taxi_demand']]
 
+        logger.info(f"Final DataFrame head:\n{final_df.head()}")
+        logger.info(f"Final DataFrame shape: {final_df.shape}")
         logger.info("==> Successfully finished SelectBestFeatures()")
         return final_df
 
@@ -544,7 +550,9 @@ def SelectBestFeatures(df: Union[pd.DataFrame, dd.DataFrame]) -> Union[pd.DataFr
 # Normalize and Scale Features
 # -----------------------------------------------------
 
-def scale_features(df: pd.DataFrame) -> Tuple[pd.DataFrame, StandardScaler]:
+def scale_features(
+        df: pd.DataFrame
+        ) -> Tuple[pd.DataFrame, StandardScaler]:
     """
     Normalizes and scales features using StandardScaler.
 
@@ -602,6 +610,64 @@ def scale_features(df: pd.DataFrame) -> Tuple[pd.DataFrame, StandardScaler]:
 
 
 # -----------------------------------------------------
+# Dimensionality Reduction
+# -----------------------------------------------------
+
+def ReduceDimensionality(
+    data: Union[pd.DataFrame, dd.DataFrame]
+    ) -> Union[pd.DataFrame, None]:
+    """
+    Reduce dimensionality using PCA while preserving 95% variance.
+    """
+
+    try:
+        logger.info("==> Starting PCA Dimensionality Reduction")
+
+        # Convert Dask to Pandas if needed
+        if isinstance(data, dd.DataFrame):
+            logger.info("Converting Dask DataFrame to Pandas...")
+            data = data.compute()
+
+        # Separate features and target
+        features = data.drop(columns=["taxi_demand"])
+        target = data["taxi_demand"]
+
+        
+        # Keep only numeric columns
+        numeric_features = features.select_dtypes(include=['float64', 'int64'])
+
+        logger.info(f"==> Original Feature Shape: {numeric_features.shape}")
+
+        # Apply PCA to preserve 95% variance
+        pca = PCA(n_components=0.95, random_state=42)
+        features_reduced = pca.fit_transform(numeric_features)
+
+        logger.info(f"==> Reduced Feature Shape: {features_reduced.shape}")
+        logger.info(f"==> Explained Variance Ratio: {pca.explained_variance_ratio_.sum():.4f}")
+
+        # Create DataFrame with dynamic column names
+        reduced_df = pd.DataFrame(
+            features_reduced,
+            columns=[f"PC{i+1}" for i in range(features_reduced.shape[1])]
+        )
+
+        # Add back target variable
+        reduced_df["taxi_demand"] = target.values
+
+        logger.info(f"==> Reduced DataFrame Head:\n{reduced_df.head()}")
+        logger.info(f"==> Final Reduced DataFrame Shape: {reduced_df.shape}")
+        logger.info(f"==> PCA Dimensionality Reduction Completed Successfully")
+
+        return reduced_df
+
+    except Exception as e:
+        logger.error(f"Error in ReduceDimensionality step: {str(e)}")
+        return None
+
+
+
+
+# -----------------------------------------------------
 # Pipeline: Feature Pipeline
 # -----------------------------------------------------
 def feature_pipeline():
@@ -610,7 +676,8 @@ def feature_pipeline():
     feature_engineered_df = feature_engineering(clean_df)
     feature_selected_df = SelectBestFeatures(feature_engineered_df)
     scaled_features_df, scaler = scale_features(feature_selected_df)
-    return scaled_features_df, scaler
+    reduced_df = ReduceDimensionality(scaled_features_df)
+    return reduced_df
 
 # -----------------------------------------------------
 # Example: call ingestion step locally
