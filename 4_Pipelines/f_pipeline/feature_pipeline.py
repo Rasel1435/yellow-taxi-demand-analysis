@@ -4,7 +4,7 @@ import pandas as pd
 import dask.dataframe as dd
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 from configs.config import DATA_SOURCE
-from typing import Union
+from typing import Union, Tuple, Annotated
 from logs import configure_logger
 from feature_engine.datetime import DatetimeFeatures
 from feature_engine.timeseries.forecasting import (
@@ -15,8 +15,9 @@ from feature_engine.timeseries.forecasting import (
 from feature_engine.selection import SmartCorrelatedSelection, RecursiveFeatureElimination
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.preprocessing import StandardScaler
-from typing import Tuple
 from sklearn.decomposition import PCA
+
+from sklearn.model_selection import train_test_split
 
 
 # -----------------------------------------------------
@@ -664,20 +665,81 @@ def ReduceDimensionality(
         logger.error(f"Error in ReduceDimensionality step: {str(e)}")
         return None
 
+# -----------------------------------------------------
+# split data into train and test sets
+# -----------------------------------------------------
+def split_data(
+    data: Annotated[pd.DataFrame, "Processed features and target"],
+    test_size: float = 0.2,
+    random_state: int = 42,
+    drop_timestamp: bool = True
+) -> Tuple[
+    Annotated[pd.DataFrame, "X_train"],
+    Annotated[pd.DataFrame, "X_test"],
+    Annotated[pd.Series, "y_train"],
+    Annotated[pd.Series, "y_test"]
+]:
+    """
+    Splits the dataset into training and testing sets.
 
+    Parameters
+    ----------
+    data : pd.DataFrame
+        Input DataFrame with features and target 'taxi_demand'.
+    test_size : float
+        Fraction of data to use as test set.
+    random_state : int
+        Random seed for reproducibility.
+    drop_timestamp : bool
+        Whether to drop 'timestamp' from features.
 
+    Returns
+    -------
+    X_train, X_test, y_train, y_test
+    """
+
+    logger.info("Splitting the data into train and test sets.")
+    try:
+        logger.info("==> Starting data split step")
+
+        # Validate columns
+        if "taxi_demand" not in data.columns:
+            raise ValueError("Missing 'taxi_demand' column in input data")
+
+        # Features & target
+        X = data.drop(columns=["taxi_demand", "timestamp"], errors='ignore')
+        y = data["taxi_demand"]
+
+        # Train-test split
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=test_size, random_state=random_state
+        )
+
+        logger.info(f"==> Successfully split complete: X_train={X_train.shape}, X_test={X_test.shape}")
+        logger.info(f"==> y_train={y_train.shape}, y_test={y_test.shape}")
+
+        return X_train, X_test, y_train, y_test
+
+    except Exception as e:
+        logger.error(f"Error in split_data(): {e}", exc_info=True)
+        raise e
 
 # -----------------------------------------------------
 # Pipeline: Feature Pipeline
 # -----------------------------------------------------
 def feature_pipeline():
+    logger.info("===> Processing Feature Pipeline()")
+
     raw_df = ingest_data(DATA_SOURCE=DATA_SOURCE)
     clean_df = clean_data(raw_df)
     feature_engineered_df = feature_engineering(clean_df)
     feature_selected_df = SelectBestFeatures(feature_engineered_df)
     scaled_features_df, scaler = scale_features(feature_selected_df)
     reduced_df = ReduceDimensionality(scaled_features_df)
-    return reduced_df
+    X_train, X_test, y_train, y_test = split_data(reduced_df)
+
+    logger.info("===> Successfully processed Feature Pipeline()")
+    return X_train, X_test, y_train, y_test
 
 # -----------------------------------------------------
 # Example: call ingestion step locally
@@ -685,5 +747,5 @@ def feature_pipeline():
 if __name__ == "__main__":
     df = feature_pipeline()
 
-    print(df.head())
-    print(f"Data shape: {df.shape}")
+    # print(df.head())
+    # print(f"Data shape: {df.shape}")

@@ -20,6 +20,7 @@ from h_steps.c_featureEngineering import feature_engineering
 from h_steps.d_featuresSelection import SelectBestFeatures
 from h_steps.g_NormalizeScaling import scale_features
 from h_steps.h_dimensionalityReduction import ReduceDimensionality
+from h_steps.i_split import split_data
 
 
 # -----------------------------------------------------
@@ -44,6 +45,7 @@ def run_pipeline():
         selected_features = SelectBestFeatures(featured_data)
         scaled_features, scaler = scale_features(selected_features)
         reduced_data = ReduceDimensionality(scaled_features)
+        X_train, X_test, y_train, y_test = split_data(reduced_data)
         logger.info(f'==> Successfully processed run_pipeline()')
     except Exception as e:
         logger.error(f"Pipeline failed: {e}")
