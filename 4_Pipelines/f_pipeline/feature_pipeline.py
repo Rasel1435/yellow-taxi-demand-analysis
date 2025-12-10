@@ -3,6 +3,10 @@ import os
 import pandas as pd
 import dask.dataframe as dd
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
+import mlflow
+import time
+import mlflow.sklearn
+
 from configs.config import DATA_SOURCE
 from typing import Union, Tuple, Annotated
 from logs import configure_logger
@@ -18,6 +22,12 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 
 from sklearn.model_selection import train_test_split
+
+
+from configs import config
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.base import BaseEstimator
 
 
 # -----------------------------------------------------
@@ -723,6 +733,95 @@ def split_data(
     except Exception as e:
         logger.error(f"Error in split_data(): {e}", exc_info=True)
         raise e
+    
+# -----------------------------------------------------
+# Model Training
+# -----------------------------------------------------
+def train_model(
+    X_train: Annotated[pd.DataFrame, "Training features"],
+    y_train: Annotated[pd.Series, "Training target"],
+    model_name: str = "RandomForestRegressor",
+) -> Annotated[BaseEstimator, "trained_model"]:
+    """
+    Train RandomForest model using hyperparameter tuning with RandomizedSearchCV.
+
+    Args:
+        X_train: Training feature set
+        y_train: Training target set
+        model_name: Model name for MLflow logging
+
+    Returns:
+        Best trained RandomForest model (estimator)
+    """
+    try:
+        logger.info("==> Processing train_model()")
+
+        # Base model
+        rf = RandomForestRegressor(random_state=42)
+
+        # Hyperparameter search space
+        param_dist = {
+            "n_estimators": [200, 300, 400, 500],
+            "max_depth": [10, 15, 20, 30, None],
+            "min_samples_split": [2, 5, 10],
+            "min_samples_leaf": [1, 2, 4],
+            "max_features": ["sqrt", "log2", None],
+            "bootstrap": [True, False],
+        }
+
+        # Randomized search
+        search = RandomizedSearchCV(
+            estimator=rf,
+            param_distributions=param_dist,
+            n_iter=40,
+            cv=5,
+            scoring="neg_mean_squared_error",
+            n_jobs=-1,
+            verbose=2,
+            random_state=42
+        )
+
+        # Start MLflow run here
+        with mlflow.start_run(run_name=f"{model_name}_training", nested=True):
+
+            # add mlflow tag
+            mlflow.set_tag("model_type", "RandomForestRegressor")
+
+            # track training time
+            start_time = time.time()
+            # Fit model
+            search.fit(X_train, y_train)
+            training_time = time.time() - start_time
+            mlflow.log_metric("training_time_sec", training_time)
+
+            # best model + params
+            best_model = search.best_estimator_
+            best_params = search.best_params_
+
+            # MLflow logging
+            mlflow.log_params(best_params)
+
+            # Log CV best score
+            mlflow.log_metric("cv_best_score", search.best_score_)
+
+            # Save model to MLflow
+            mlflow.sklearn.log_model(
+                best_model, 
+                f"{config.MODEL_NAME}-RandomForest",
+                input_example=X_train.iloc[:5]  # first 5 rows as example
+            )
+
+            logger.info(f"==> Successfully processed train_model()")
+            logger.info(f"Best Parameters: {best_params}")
+            logger.info(f"Training Time (sec): {training_time}")
+
+            return best_model
+
+    except Exception as e:
+        logger.error(f"in train_model(): {e}")
+        raise e
+    finally:
+        logger.info("==> Exiting train_model()")
 
 # -----------------------------------------------------
 # Pipeline: Feature Pipeline
@@ -737,15 +836,21 @@ def feature_pipeline():
     scaled_features_df, scaler = scale_features(feature_selected_df)
     reduced_df = ReduceDimensionality(scaled_features_df)
     X_train, X_test, y_train, y_test = split_data(reduced_df)
+    model = train_model(X_train=X_train, y_train=y_train, model_name='RandomForestRegressor')
 
     logger.info("===> Successfully processed Feature Pipeline()")
-    return X_train, X_test, y_train, y_test
-
+    return model, X_train, X_test, y_train, y_test, scaler
+ 
 # -----------------------------------------------------
 # Example: call ingestion step locally
 # -----------------------------------------------------
 if __name__ == "__main__":
-    df = feature_pipeline()
+    # df = feature_pipeline()
 
-    # print(df.head())
-    # print(f"Data shape: {df.shape}")
+    model, X_train, X_test, y_train, y_test, scaler = feature_pipeline()
+
+    # Example usage:
+    y_pred = model.predict(X_test)
+    from sklearn.metrics import mean_squared_error, r2_score
+    print("Test MSE:", mean_squared_error(y_test, y_pred))
+    print("Test R2:", r2_score(y_test, y_pred))
