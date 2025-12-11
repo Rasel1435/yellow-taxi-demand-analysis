@@ -1,10 +1,5 @@
 import sys
 import os
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(current_dir, "../../"))
-sys.path.append(project_root)
-
 import logging
 import mlflow
 import time
@@ -19,14 +14,21 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.base import BaseEstimator
 # from i_split import split_data
 
+# Add project root to sys.path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, "../../"))
+sys.path.append(project_root)
+
+
 logger = logging.getLogger(__name__)
+
 
 # ZenML experiment tracker
 tracker = client.Client().active_stack.experiment_tracker
 
 @step(
     name="Train RandomForest Model",
-    experiment_tracker=tracker.name,
+    # experiment_tracker=tracker.name,
     enable_artifact_metadata=True,
     enable_artifact_visualization=True,
     enable_step_logs=True,
@@ -74,15 +76,26 @@ def train_model(
             verbose=2,
             random_state=42
         )
+       
+        # Set MLflow experiment 
+        mlflow.set_experiment("Taxi_Demand_Forecasting")
 
         # Start MLflow run here
         with mlflow.start_run(run_name=f"{model_name}_training", nested=True):
 
+            # Enable autologging for scikit-learn
+            mlflow.sklearn.autolog()
+
             # add mlflow tag
-            mlflow.set_tag("model_type", "RandomForestRegressor")
+            mlflow.set_tags({
+                "model_type": "RandomForestRegressor",
+                "dataset": "yellow_taxi_hourly",
+                "feature_selection": "SelectBestFeatures"
+            })
 
             # track training time
             start_time = time.time()
+            
             # Fit model
             search.fit(X_train, y_train)
             training_time = time.time() - start_time
