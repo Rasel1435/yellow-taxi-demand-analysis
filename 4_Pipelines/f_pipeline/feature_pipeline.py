@@ -781,11 +781,27 @@ def train_model(
             random_state=42
         )
 
+        # Set MLflow experiment 
+        mlflow.set_experiment("Taxi_Demand_Forecasting")
+
         # Start MLflow run here
         with mlflow.start_run(run_name=f"{model_name}_training", nested=True):
+            
+            # Enable autologging for scikit-learn
+            mlflow.sklearn.autolog()
 
             # add mlflow tag
-            mlflow.set_tag("model_type", "RandomForestRegressor")
+            mlflow.set_tags({
+                "developer": config.DEVELOPER_NAME,
+                "model_name": config.MODEL_NAME,
+                "dataset": "yellow_taxi_hourly",
+                "pipeline": "Feature Pipeline",
+                "feature_selection": "SelectBestFeatures",
+                "scaling": "StandardScaler",
+                "model_type": "RandomForestRegressor",
+                "framework": "scikit-learn",
+                "description": "RandomForest model for yellow taxi demand forecasting with hyperparameter tuning using RandomizedSearchCV",
+            })
 
             # track training time
             start_time = time.time()

@@ -88,9 +88,15 @@ def train_model(
 
             # add mlflow tag
             mlflow.set_tags({
-                "model_type": "RandomForestRegressor",
+                "developer": config.DEVELOPER_NAME,
+                "model_name": config.MODEL_NAME,
                 "dataset": "yellow_taxi_hourly",
-                "feature_selection": "SelectBestFeatures"
+                "pipeline": "ETL Feature Pipeline",
+                "feature_selection": "SelectBestFeatures",
+                "scaling": "StandardScaler",
+                "model_type": "RandomForestRegressor",
+                "framework": "scikit-learn",
+                "description": "RandomForest model for yellow taxi demand forecasting with hyperparameter tuning using RandomizedSearchCV",
             })
 
             # track training time
