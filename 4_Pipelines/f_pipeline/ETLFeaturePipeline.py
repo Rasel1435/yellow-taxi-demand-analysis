@@ -20,8 +20,9 @@ from h_steps.c_featureEngineering import feature_engineering
 from h_steps.d_featuresSelection import SelectBestFeatures
 from h_steps.g_NormalizeScaling import scale_features
 from h_steps.h_dimensionalityReduction import ReduceDimensionality
-from h_steps.i_split import split_data
-from h_steps.j_train_model import train_model
+from h_steps.i_feature_target_spliting import split_data
+from h_steps.j_model_train import train_model
+from h_steps.k_evaluate_model import evaluate_model
 
 
 # -----------------------------------------------------
@@ -47,8 +48,13 @@ def run_pipeline():
         scaled_features, scaler = scale_features(selected_features)
         reduced_data = ReduceDimensionality(scaled_features)
         X_train, X_test, y_train, y_test = split_data(reduced_data)
-        train_model(X_train=X_train, y_train=y_train, model_name='RandomForestRegressor')
+        model = train_model(X_train=X_train, y_train=y_train, model_name='RandomForestRegressor')
+        r2, mape = evaluate_model(model=model, X=X_test, y=y_test)
+
         logger.info(f'==> Successfully processed run_pipeline()')
+
+        return model, r2, mape
+
     except Exception as e:
         logger.error(f"Pipeline failed: {e}")
 

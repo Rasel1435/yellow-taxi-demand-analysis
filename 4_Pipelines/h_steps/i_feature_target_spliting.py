@@ -14,7 +14,8 @@ logger = configure_logger()
     name="Split Data",
     enable_artifact_metadata=True,
     enable_artifact_visualization=True,
-    enable_step_logs=True
+    enable_step_logs=True,
+    enable_cache=True,
 )
 def split_data(
     data: Annotated[pd.DataFrame, "Processed features and target"],

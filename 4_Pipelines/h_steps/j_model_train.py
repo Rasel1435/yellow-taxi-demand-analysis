@@ -32,6 +32,7 @@ tracker = client.Client().active_stack.experiment_tracker
     enable_artifact_metadata=True,
     enable_artifact_visualization=True,
     enable_step_logs=True,
+    enable_cache=True,
 )
 def train_model(
     X_train: Annotated[pd.DataFrame, "Training features"],
