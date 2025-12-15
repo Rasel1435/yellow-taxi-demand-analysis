@@ -1,4 +1,6 @@
 import pandas as pd
+import joblib
+import datetime
 from sklearn.preprocessing import StandardScaler
 from zenml import step
 from typing import Tuple
@@ -63,16 +65,23 @@ def scale_features(
         # Reattach timestamp and target
         X_scaled_df['timestamp'] = timestamp.values
         X_scaled_df['taxi_demand'] = y.values
+        # X_scaled_df = X_scaled_df[['timestamp'] + list(X.columns) + ['taxi_demand']]
 
         # Reorder columns (optional)
         cols = ['timestamp'] + list(X.columns) + ['taxi_demand']
         X_scaled_df = X_scaled_df[cols]
 
+        # save scaler as artifact
+        version = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        scaler_path = f'3_Data/artifacts/scaler_v{version}.joblib'
+        joblib.dump(scaler, scaler_path)
+        logger.info(f"Scaler saved to {scaler_path}")
+
         logger.info("==> Scaled DataFrame Head:\n%s", X_scaled_df.head())
         logger.info(f"==> Final Scaled DataFrame Shape: {X_scaled_df.shape}")
         logger.info(f"==> Normalization and Scaling completed successfully.")
 
-        return X_scaled_df, scaler
+        return X_scaled_df, scaler_path
 
     except Exception as e:
         logger.error(f"Error in scale_features: {e}")

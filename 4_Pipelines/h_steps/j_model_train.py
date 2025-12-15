@@ -37,6 +37,8 @@ tracker = client.Client().active_stack.experiment_tracker
 def train_model(
     X_train: Annotated[pd.DataFrame, "Training features"],
     y_train: Annotated[pd.Series, "Training target"],
+    scaler_path: str,
+    pca_path: str,
     model_name: str = "RandomForestRegressor",
 ) -> Annotated[BaseEstimator, "trained_model"]:
     """
@@ -87,6 +89,13 @@ def train_model(
             # Enable autologging for scikit-learn
             mlflow.sklearn.autolog()
 
+            # Log preprocessors
+            mlflow.log_artifact(scaler_path, artifact_path="preprocessors")
+            mlflow.log_artifact(pca_path, artifact_path="preprocessors")
+            mlflow.set_tag("scaler_path", scaler_path)
+            mlflow.set_tag("pca_path", pca_path)
+
+
             # add mlflow tag
             mlflow.set_tags({
                 "developer": config.DEVELOPER_NAME,
@@ -97,6 +106,9 @@ def train_model(
                 "scaling": "StandardScaler",
                 "model_type": "RandomForestRegressor",
                 "framework": "scikit-learn",
+                "stage": "training",
+                "data_version": "v2025-01",
+                "features": "pca_reduced",
                 "description": "RandomForest model for yellow taxi demand forecasting with hyperparameter tuning using RandomizedSearchCV",
             })
 
@@ -146,7 +158,13 @@ if __name__ == '__main__':
     df = pd.read_csv('/media/sheikh/F262ADC762AD90C1/backup/ML/yellow-taxi-demand-analysis/3_Data/processed/g_2025_hourly_all_PCA_reduced.csv')
     X_train, X_test, y_train, y_test = split_data(df)
     # Train
-    model = train_model(X_train=X_train, y_train=y_train, model_name=config.MODEL_NAME)
+    model = train_model(
+    X_train=X_train,
+    y_train=y_train,
+    scaler_path='3_Data/artifacts/scaler_v20251215_101500.joblib',
+    pca_path='3_Data/artifacts/pca_model_20251215_101500.joblib',
+    model_name=config.MODEL_NAME,
+    )
     print("Training completed. Model:", model)
 
     y_pred = model.predict(X_test)

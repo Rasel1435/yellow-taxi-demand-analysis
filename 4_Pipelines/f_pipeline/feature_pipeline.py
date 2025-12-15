@@ -1,6 +1,7 @@
 import sys
 import os
 import pandas as pd
+import numpy as np
 import dask.dataframe as dd
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 import mlflow
@@ -23,11 +24,17 @@ from sklearn.decomposition import PCA
 
 from sklearn.model_selection import train_test_split
 
-
 from configs import config
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.base import BaseEstimator
+
+from sklearn.metrics import (
+    mean_absolute_percentage_error,
+    mean_squared_error,
+    r2_score
+)
+from statsmodels.tools.eval_measures import rmse
 
 
 # -----------------------------------------------------
@@ -839,6 +846,120 @@ def train_model(
     finally:
         logger.info("==> Exiting train_model()")
 
+
+# -----------------------------------------------------
+# Evaluate The Model
+# -----------------------------------------------------
+def compute_aic_bic(y_true, y_pred, num_params: int):
+    """
+    Compute AIC and BIC for regression models.
+
+    AIC = 2k - 2 ln(L)
+    BIC = n ln(RSS/n) + k ln(n)
+
+    where:
+    k = number of parameters,
+    n = number of observations,
+    L = likelihood,
+    RSS = residual sum of squares
+    
+    AIC → predictive performance
+    BIC → simplicity preference
+
+    y_true, y_pred: arrays
+    num_params: model complexity (features + intercept)
+    """
+
+    y_true = np.asarray(y_true).ravel()
+    y_pred = np.asarray(y_pred).ravel()
+
+    n = len(y_true)
+    resid = y_true - y_pred
+    rss = np.sum(resid ** 2)
+
+    # Numerical stability
+    rss = max(rss, 1e-12)
+
+    aic = 2 * num_params + n * np.log(rss / n)
+    bic = n * np.log(rss / n) + num_params * np.log(n)
+
+    return float(aic), float(bic)
+
+
+# -------------------------------------------------------
+# Evaluation
+# -------------------------------------------------------
+def evaluate_model(
+    model: Annotated[BaseEstimator, "Trained model"],
+    X: Annotated[pd.DataFrame, "Evaluation features"],
+    y: Annotated[pd.Series, "Evaluation target"],
+) -> Tuple[
+    Annotated[float, "R2 Score"],
+    Annotated[float, "MAPE Score"]
+]:
+    """
+    Evaluate the trained model on validation/test data using multiple KPIs.
+    Logs metrics to MLflow and returns R2 & MAPE.
+    """
+
+    try:
+        logger.info("==> Starting evaluation...")
+
+        # -----------------------------------------
+        # Generate predictions
+        # -----------------------------------------
+        y_pred = model.predict(X)
+
+        # -----------------------------------------
+        # Metrics
+        # -----------------------------------------
+        mape = mean_absolute_percentage_error(y, y_pred)
+        mse = mean_squared_error(y, y_pred)
+        rmse_val = float(rmse(y, y_pred))
+        r2 = r2_score(y, y_pred)
+
+        # Model parameters = features + intercept term
+        num_params = X.shape[1] + 1
+        aic, bic = compute_aic_bic(y, y_pred, num_params)
+
+        # -----------------------------------------
+        # MLflow Logging
+        # -----------------------------------------
+        mlflow.log_metrics({
+            "MAPE": mape,
+            "MSE": mse,
+            "RMSE": rmse_val,
+            "R2": r2,
+            "AIC": aic,
+            "BIC": bic
+        })
+
+        mlflow.log_param("num_params", num_params)
+
+        mlflow.set_tags({
+            "stage": "evaluation",
+            "metric_focus": "AIC_BIC",
+            "model_type": type(model).__name__,
+        })
+
+        logger.info(
+            f"Evaluation results | "
+            f"R2={r2:.4f}, "
+            f"MAPE={mape:.4f}, "
+            f"RMSE={rmse_val:.4f}, "
+            f"AIC={aic:.2f}, "
+            f"BIC={bic:.2f}"
+        )
+
+        
+        logger.info("==> Evaluation completed successfully.")
+
+        return r2, mape
+
+    except Exception as e:
+        logger.error(f"Evaluation failed: {e}")
+        raise e
+
 # -----------------------------------------------------
 # Pipeline: Feature Pipeline
 # -----------------------------------------------------
@@ -853,9 +974,10 @@ def feature_pipeline():
     reduced_df = ReduceDimensionality(scaled_features_df)
     X_train, X_test, y_train, y_test = split_data(reduced_df)
     model = train_model(X_train=X_train, y_train=y_train, model_name='RandomForestRegressor')
+    r2, mape = evaluate_model(model=model, X=X_test, y=y_test)
 
     logger.info("===> Successfully processed Feature Pipeline()")
-    return model, X_train, X_test, y_train, y_test, scaler
+    return model, r2, mape
  
 # -----------------------------------------------------
 # Example: call ingestion step locally
