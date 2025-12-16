@@ -1,3 +1,5 @@
+import joblib
+import datetime
 import pandas as pd
 
 from dask import dataframe as dd
@@ -103,6 +105,12 @@ def SelectBestFeatures(
         logger.info("Step 5: Creating filtered dataframe")
 
         final_df = df[['timestamp'] + final_features + ['taxi_demand']]
+
+        # Save selected features list
+        version_stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        features_path = f'3_Data/artifacts/selected_features_{version_stamp}.joblib'
+        joblib.dump(final_features, features_path)
+        logger.info(f"Selected features saved to {features_path}")
 
         logger.info(f"==> Final Selected Features DataFrame Head:\n{final_df.head()}")
         logger.info(f"==> Final Selected Features DataFrame Shape: {final_df.shape}")

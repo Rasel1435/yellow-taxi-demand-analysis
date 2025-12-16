@@ -17,7 +17,7 @@ logger = configure_logger()
 )
 def ReduceDimensionality(
     data: Union[pd.DataFrame, dd.DataFrame]
-    ) -> Tuple[pd.DataFrame, str]:
+    ) -> Tuple[pd.DataFrame, PCA, str]:
     """
     Reduce dimensionality using PCA while preserving 95% variance.
     """
@@ -62,16 +62,16 @@ def ReduceDimensionality(
         joblib.dump(pca, pca_path)
         logger.info(f"PCA model saved to {pca_path}")
 
+
         logger.info(f"==> Reduced DataFrame Head:\n{reduced_df.head()}")
         logger.info(f"==> Final Reduced DataFrame Shape: {reduced_df.shape}")
         logger.info(f"==> PCA Dimensionality Reduction Completed Successfully")
 
-        return reduced_df, pca_path
+        return reduced_df, pca, pca_path
 
     except Exception as e:
         logger.error(f"Error in ReduceDimensionality step: {str(e)}")
-        return None
-
+        raise ValueError(f"Error in ReduceDimensionality step: {str(e)}")
 
 # For testing purposes
 """

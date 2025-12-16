@@ -18,10 +18,11 @@ logger = configure_logger()
     name="Normalize and Scale Features",
     enable_step_logs=True,
     enable_artifact_metadata=True
+
 )
 def scale_features(
     df: pd.DataFrame
-    ) -> Tuple[pd.DataFrame, StandardScaler]:
+    ) -> Tuple[pd.DataFrame, StandardScaler, str]:
     """
     Normalizes and scales features using StandardScaler.
 
@@ -72,8 +73,8 @@ def scale_features(
         X_scaled_df = X_scaled_df[cols]
 
         # save scaler as artifact
-        version = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        scaler_path = f'3_Data/artifacts/scaler_v{version}.joblib'
+        version_stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        scaler_path = f'3_Data/artifacts/scaler_{version_stamp}.joblib'
         joblib.dump(scaler, scaler_path)
         logger.info(f"Scaler saved to {scaler_path}")
 
@@ -81,7 +82,7 @@ def scale_features(
         logger.info(f"==> Final Scaled DataFrame Shape: {X_scaled_df.shape}")
         logger.info(f"==> Normalization and Scaling completed successfully.")
 
-        return X_scaled_df, scaler_path
+        return X_scaled_df, scaler, scaler_path
 
     except Exception as e:
         logger.error(f"Error in scale_features: {e}")

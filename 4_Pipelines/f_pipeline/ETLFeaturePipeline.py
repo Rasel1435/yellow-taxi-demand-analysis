@@ -28,7 +28,7 @@ from h_steps.h_dimensionalityReduction import ReduceDimensionality
 @pipeline(
         name='ETLFeaturePipelineUberTaxiDemand',
         enable_step_logs=True,
-        enable_cache=True,
+        enable_cache=False,
         
     )
 
@@ -52,14 +52,16 @@ def run_pipeline():
         selected_features = SelectBestFeatures(featured_data)
 
         # Scaling / normalization
-        scaled_features, scaler_path = scale_features(selected_features)
+        scaled_features, scaler, scaler_path = scale_features(selected_features)
 
         # Dimensionality reduction
-        reduced_data, pca_path = ReduceDimensionality(scaled_features)
+        reduced_data, pca, pca_path = ReduceDimensionality(scaled_features)
 
         logger.info(f'==> Successfully processed run_pipeline()')
-
-        return reduced_data, scaler_path, pca_path
+        
+        # Return all objects and paths
+        return reduced_data, scaler, scaler_path, pca, pca_path
+    
     except Exception as e:
         logger.error(f"Pipeline failed: {e}")
         raise e
@@ -67,6 +69,4 @@ def run_pipeline():
 
 
 if __name__ == "__main__":
-    reduced_data, scaler_path, pca_path = run_pipeline()
-    print(reduced_data.head(), scaler_path, pca_path)
-
+    run_pipeline()
