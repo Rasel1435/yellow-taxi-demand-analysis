@@ -1,12 +1,9 @@
-import datetime
-import joblib
 from zenml import pipeline
-
 from e_Pipelines.f_pipeline.ETLFeaturePipeline import run_pipeline
 from e_Pipelines.h_steps.i_feature_target_spliting import split_data
 from e_Pipelines.h_steps.j_model_train import train_model
 from e_Pipelines.h_steps.k_evaluate_model import evaluate_model
-from e_Pipelines.f_pipeline.logs import configure_logger
+from logs import configure_logger
 
 logger = configure_logger()
 
@@ -43,18 +40,13 @@ def trainPipeline():
             model_name='RandomForestRegressor',
         )
 
+
         logger.info("==> Evaluating trained model")
-        r2, mape = evaluate_model(model=model, X=X_test, y=y_test)
+        evaluate_model(model=model, X=X_test, y=y_test)
 
-        logger.info(f"==> Training pipeline completed | R2: {r2}, MAPE: {mape}")
+        logger.info(f"==> Training pipeline completed successfully")
 
-        # Save trained model artifact
-        timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-        model_path = f"3_Data/artifacts/trained_model_{timestamp}.joblib"
-        joblib.dump(model, model_path)
-        logger.info(f"Model saved to {model_path}")
-
-        return model, scaler_path, pca_path, r2, mape
+        return model, scaler_path, pca_path
 
     except Exception as e:
         logger.error(f"Error in trainPipeline(): {e}")
@@ -62,6 +54,7 @@ def trainPipeline():
 
 
 if __name__ == "__main__":
-    # Run pipeline from project root
-    # python -m e_Pipelines.f_pipeline.Training_Pipeline
     trainPipeline()
+
+# Run pipeline from project root
+# python -m e_Pipelines.f_pipeline.training_pipeline

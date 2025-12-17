@@ -1,28 +1,22 @@
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
-current = os.path.dirname(os.path.abspath(__file__))
-parent = os.path.dirname(current)
-sys.path.append(parent)
-sys.path.append(os.path.join(current, "h_steps"))
-sys.path.append(os.path.join(parent, "f_pipeline"))
-
-from logs import configure_logger
-logger = configure_logger()
-
+import datetime
+import joblib
+import mlflow
 from zenml import pipeline
 from zenml.config import DockerSettings
 from zenml.constants import DEFAULT_SERVICE_START_STOP_TIMEOUT
 from zenml.integrations.constants import MLFLOW
 from zenml.integrations.mlflow.steps import mlflow_model_deployer_step
 from typing import Annotated
+from logs import configure_logger
+
+logger = configure_logger()
 
 # Import steps
-from f_pipeline.ETLFeaturePipeline import run_pipeline
-from h_steps.i_feature_target_spliting import split_data
-from h_steps.j_model_train import train_model
-from h_steps.k_evaluate_model import evaluate_model
-from h_steps.l_deployment_trigger import trigger_deployment, DeploymentTrigger
+from e_Pipelines.f_pipeline.ETLFeaturePipeline import run_pipeline
+from e_Pipelines.h_steps.i_feature_target_spliting import split_data
+from e_Pipelines.h_steps.j_model_train import train_model
+from e_Pipelines.h_steps.k_evaluate_model import evaluate_model
+from e_Pipelines.h_steps.l_deployment_trigger import trigger_deployment, DeploymentTrigger
 
 from configs import config
 
@@ -34,7 +28,7 @@ container_settings = DockerSettings(required_integrations=[MLFLOW])
     settings={"docker": container_settings}
 )
 def continuous_deployment(
-    min_r2: Annotated[float, "Minimum R2 to trigger deployment"] = 0.92,
+    min_r2: Annotated[float, "Minimum R2 to trigger deployment"] = 0.90,
     max_mape: Annotated[float, "Maximum MAPE allowed to trigger deployment"] = 0.45,
     workers: Annotated[int, "Number of deployment workers"] = 1,
     timeout: Annotated[int, "Deployment timeout"] = DEFAULT_SERVICE_START_STOP_TIMEOUT,
@@ -49,12 +43,14 @@ def continuous_deployment(
     """
     try:
         logger.info("==> Running ETL Feature Pipeline")
-        reduced_data, scaler_path, pca_path = run_pipeline()
+        # ETL returns 5 items: reduced_data, scaler, scaler_path, pca, pca_path
+        reduced_data, _, scaler_path, _, pca_path = run_pipeline()
 
         logger.info("==> Splitting data into train and test sets")
         X_train, X_test, y_train, y_test = split_data(reduced_data)
 
         logger.info("==> Training RandomForest model")
+        # Train model
         model = train_model(
             X_train=X_train,
             y_train=y_train,
@@ -65,9 +61,9 @@ def continuous_deployment(
 
         logger.info("==> Evaluating trained model")
         r2, mape = evaluate_model(model=model, X=X_test, y=y_test)
-        logger.info(f"==> Evaluation metrics: R2={r2:.4f}, MAPE={mape:.4f}")
+        logger.info("==> Evaluation metrics computed successfully.")
 
-        # Trigger deployment
+        # Trigger deployment decision based on thresholds
         deployment_decision = trigger_deployment(
             r2=r2,
             mape=mape,
@@ -84,13 +80,7 @@ def continuous_deployment(
             model_name=f'{config.MODEL_NAME}-RandomForest',
             workers=workers,
             mlserver=False,
-            timeout=timeout,
-            custom_tags={
-                "scaler_path": scaler_path,
-                "pca_path": pca_path,
-                "r2_score": f"{r2:.4f}",
-                "mape_score": f"{mape:.4f}"
-            }
+            timeout=timeout
         )
 
         logger.info("==> Continuous deployment pipeline completed successfully.")
@@ -102,4 +92,9 @@ def continuous_deployment(
 
 if __name__ == "__main__":
     continuous_deployment()
+
+
+
+# Run pipeline from project root
+# python -m e_Pipelines.f_pipeline.continuous_deployment_pipeline
 

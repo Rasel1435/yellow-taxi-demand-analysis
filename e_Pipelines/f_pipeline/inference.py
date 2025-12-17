@@ -52,11 +52,11 @@ if __name__ == "__main__":
     raw_data = pd.read_parquet("/media/sheikh/F262ADC762AD90C1/backup/ML/yellow-taxi-demand-analysis/3_Data/raw/yellow_tripdata_2025-01_january.parquet")
     
     # Load trained model
-    model = joblib.load("3_Data/artifacts/trained_model.joblib")
+    model = joblib.load("d_Data/artifacts/yellow_taxi_demand_model_RandomForest_20251217_092223.joblib")
     
     # Paths to saved scaler and PCA
-    scaler_path = "3_Data/artifacts/scaler.joblib"
-    pca_path = "3_Data/artifacts/pca.joblib"
+    scaler_path = "d_Data/artifacts/scaler_20251217_091815.joblib"
+    pca_path = "d_Data/artifacts/pca_model_20251217_091836.joblib"
     
     # Run inference pipeline
     pipeline_instance = inference_pipeline(

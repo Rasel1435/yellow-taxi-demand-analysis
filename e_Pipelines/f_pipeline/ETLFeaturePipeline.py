@@ -58,3 +58,7 @@ def run_pipeline():
 
 if __name__ == "__main__":
     run_pipeline()
+
+
+# Run pipeline from project root
+# python -m e_Pipelines.f_pipeline.ETLFeaturePipeline

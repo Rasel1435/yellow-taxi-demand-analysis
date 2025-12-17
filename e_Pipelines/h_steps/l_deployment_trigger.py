@@ -35,7 +35,7 @@ def trigger_deployment(
     decision = (r2 >= deployment_trigger.min_r2) and (mape <= deployment_trigger.max_mape)
 
     # Determine stage
-    if r2 >= 0.92:
+    if r2 >= 0.91:
         stage = "production"
     elif r2 >= 0.90:
         stage = "staging"

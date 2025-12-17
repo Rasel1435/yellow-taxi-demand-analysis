@@ -1,14 +1,14 @@
-import sys
-import os
-import logging
+import joblib
+import datetime
 import mlflow
 import time
 import pandas as pd
 import mlflow.sklearn
 
 from configs import config
-from typing import Annotated
+from typing import Annotated, Tuple
 from zenml import step, client
+
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.base import BaseEstimator
@@ -24,7 +24,6 @@ tracker = client.Client().active_stack.experiment_tracker
 
 @step(
     name="Train RandomForest Model",
-    # experiment_tracker=tracker.name,
     enable_artifact_metadata=True,
     enable_artifact_visualization=True,
     enable_step_logs=True,
@@ -37,6 +36,7 @@ def train_model(
     pca_path: str,
     model_name: str = "RandomForestRegressor",
 ) -> Annotated[BaseEstimator, "trained_model"]:
+    
     """
     Train RandomForest model using hyperparameter tuning with RandomizedSearchCV.
 
@@ -132,6 +132,13 @@ def train_model(
                 f"{config.MODEL_NAME}-RandomForest",
                 input_example=X_train.iloc[:5]  # first 5 rows as example
             )
+
+            # Also save model locally
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            model_path = f"d_Data/artifacts/{config.MODEL_NAME}_RandomForest_{timestamp}.joblib"
+            joblib.dump(best_model, model_path)
+            logger.info(f"Model saved locally at: {model_path}")
+
 
             logger.info(f"==> Successfully processed train_model()")
             logger.info(f"Best Parameters: {best_params}")
