@@ -221,3 +221,6 @@ mlruns/
 
 # OS
 .DS_Store
+
+# mlflow ui
+mlflow

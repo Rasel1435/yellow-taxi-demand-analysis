@@ -168,6 +168,13 @@ touch requirements.txt logs.py zenmlNotes.txt configs/config.yaml
 ✅ Add schema validation (Pydantic) </br>
 ✅ Add artifact versioning (scaler/encoder/model) </br>
 ✅ Integrate MLflow Model Registry </br>
+
+```bash
+    mlflow ui \
+        --backend-store-uri sqlite:////media/sheikh/F262ADC762AD90C1/backup/ML/yellow-taxi-demand-analysis/mlflow/mlflow.db \
+        --default-artifact-root /media/sheikh/F262ADC762AD90C1/backup/ML/yellow-taxi-demand-analysis/mlflow/artifacts
+```
+
 ✅ Add unit + integration tests </br>
 ✅ Add monitoring dashboards
 
