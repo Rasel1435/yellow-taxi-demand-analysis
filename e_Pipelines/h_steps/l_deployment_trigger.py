@@ -2,8 +2,8 @@ import mlflow
 from zenml import step
 from typing import Annotated
 from pydantic import BaseModel
-
 from logs import configure_logger
+
 logger = configure_logger()
 
 

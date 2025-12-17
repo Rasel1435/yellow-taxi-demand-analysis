@@ -1,13 +1,10 @@
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 import pandas as pd
 from typing import Union
 from dask import dataframe as dd
 from configs.config import DATA_SOURCE
 from zenml import step
-
 from logs import configure_logger
+
 logger = configure_logger()
 
 

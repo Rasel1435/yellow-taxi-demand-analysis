@@ -7,11 +7,8 @@ from typing import Union
 from zenml import step
 from feature_engine.selection import SmartCorrelatedSelection, RecursiveFeatureElimination
 from sklearn.tree import DecisionTreeRegressor
-
-# -----------------------------------------------------
-# Logger
-# -----------------------------------------------------
 from logs import configure_logger
+
 logger = configure_logger()
 
 

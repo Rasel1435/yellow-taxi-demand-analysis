@@ -12,15 +12,11 @@ from zenml import step, client
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.base import BaseEstimator
+from logs import configure_logger
 # from i_split import split_data
 
-# Add project root to sys.path
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(current_dir, "../../"))
-sys.path.append(project_root)
 
-
-logger = logging.getLogger(__name__)
+logger = configure_logger()
 
 
 # ZenML experiment tracker

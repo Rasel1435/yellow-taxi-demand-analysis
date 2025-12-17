@@ -4,11 +4,8 @@ import datetime
 from sklearn.preprocessing import StandardScaler
 from zenml import step
 from typing import Tuple
-
-# -----------------------------------------------------
-# Logger
-# -----------------------------------------------------
 from logs import configure_logger
+
 logger = configure_logger()
 
 

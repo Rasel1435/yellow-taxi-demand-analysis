@@ -1,15 +1,15 @@
 import datetime
 import joblib
-
 from zenml import pipeline
-from .logs import configure_logger
+
+from e_Pipelines.f_pipeline.ETLFeaturePipeline import run_pipeline
+from e_Pipelines.h_steps.i_feature_target_spliting import split_data
+from e_Pipelines.h_steps.j_model_train import train_model
+from e_Pipelines.h_steps.k_evaluate_model import evaluate_model
+from e_Pipelines.f_pipeline.logs import configure_logger
+
 logger = configure_logger()
 
-# Absolute imports from project root
-from e_Pipelines.f_pipeline.ETLFeaturePipeline import run_pipeline
-from h_steps.i_feature_target_spliting import split_data
-from h_steps.j_model_train import train_model
-from h_steps.k_evaluate_model import evaluate_model
 
 
 @pipeline(
@@ -63,5 +63,5 @@ def trainPipeline():
 
 if __name__ == "__main__":
     # Run pipeline from project root
-    # python -m 4_Pipelines.f_pipeline.Training_Pipeline
+    # python -m e_Pipelines.f_pipeline.Training_Pipeline
     trainPipeline()

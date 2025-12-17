@@ -1,26 +1,14 @@
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
-# Add parent folder and steps to path
-current = os.path.dirname(os.path.abspath(__file__))
-parent = os.path.dirname(current)
-sys.path.append(parent)
-sys.path.append(os.path.join(current, "h_steps"))
-
-
-from logs import configure_logger
-logger = configure_logger()
-
-
 from zenml import pipeline
 from configs.config import DATA_SOURCE
-from h_steps.a_ingest import ingest_data
-from h_steps.b_clean import clean_data
-from h_steps.c_featureEngineering import feature_engineering
-from h_steps.d_featuresSelection import SelectBestFeatures
-from h_steps.g_NormalizeScaling import scale_features
-from h_steps.h_dimensionalityReduction import ReduceDimensionality
+from e_Pipelines.h_steps.a_ingest import ingest_data
+from e_Pipelines.h_steps.b_clean import clean_data
+from e_Pipelines.h_steps.c_featureEngineering import feature_engineering
+from e_Pipelines.h_steps.d_featuresSelection import SelectBestFeatures
+from e_Pipelines.h_steps.g_NormalizeScaling import scale_features
+from e_Pipelines.h_steps.h_dimensionalityReduction import ReduceDimensionality
+from logs import configure_logger
 
+logger = configure_logger()
 
 # -----------------------------------------------------
 # ETL / Feature Pipeline

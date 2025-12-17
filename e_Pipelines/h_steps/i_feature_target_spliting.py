@@ -2,11 +2,8 @@ import pandas as pd
 from zenml import step
 from typing import Tuple, Annotated
 from sklearn.model_selection import train_test_split
-
-# -----------------------------
-# Logger
-# -----------------------------
 from logs import configure_logger
+
 logger = configure_logger()
 
 

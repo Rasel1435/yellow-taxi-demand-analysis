@@ -5,8 +5,8 @@ from zenml import step
 from typing import Union, Tuple
 from dask import dataframe as dd
 from sklearn.decomposition import PCA
-
 from logs import configure_logger
+
 logger = configure_logger()
 
 

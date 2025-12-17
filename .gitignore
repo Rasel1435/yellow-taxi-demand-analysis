@@ -206,12 +206,18 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-# Data files
+
+
+# Data directories
 d_Data/raw/
 d_Data/processed/
+
 
 # ZenML
 .zen/
 
 # MLflow
 mlruns/
+
+# OS
+.DS_Store
