@@ -68,15 +68,15 @@ git clone https://github.com/Rasel1435/yellow-taxi-demand-analysis.git
 cd yellow-taxi-demand-analysis
 
 # Create required directories
-mkdir -p 0_Research_and_Study \
-         1_Data_Preprocess \
-         2_Model_Development \
-         3_Data/raw 3_Data/processed 3_Data/test 3_Data/artifacts 3_Data/predictions \
-         4_Pipelines/f_pipeline 4_Pipelines/h_steps \
-         5_API_Service \
-         6_Docker_Deployment \
-         7_Monitoring \
-         8_Tests \
+mkdir -p a_Research_and_Study \
+         b_Data_Preprocess \
+         c_Model_Development \
+         d_Data/raw d_Data/processed d_Data/test d_Data/artifacts d_Data/predictions \
+         e_Pipelines/f_pipeline e_Pipelines/h_steps \
+         f_API_Service \
+         g_Docker_Deployment \
+         h_Monitoring \
+         i_Tests \
          configs \
          notebooks
 
