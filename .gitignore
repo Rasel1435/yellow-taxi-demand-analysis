@@ -207,7 +207,8 @@ marimo/_lsp/
 __marimo__/
 
 # Data files
-3_Data/
+d_Data/raw/
+d_Data/processed/
 
 # ZenML
 .zen/
