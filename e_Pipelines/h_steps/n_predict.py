@@ -1,14 +1,16 @@
 from zenml import step
 from typing import Annotated
-import pandas as pd
+import numpy as np
 from sklearn.base import BaseEstimator
 
 @step(enable_step_logs=True)
 def predict(
     model: Annotated[BaseEstimator, "deployed_model"],
-    X: Annotated[pd.DataFrame, "features"]
-) -> Annotated[pd.Series, "predictions"]:
+    X: Annotated[np.ndarray, "features"]
+) -> Annotated[np.ndarray, "predictions"]:
+    """Generate predictions using the trained model."""
     return model.predict(X)
+
 
 
 
