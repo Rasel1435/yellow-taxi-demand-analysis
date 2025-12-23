@@ -51,22 +51,22 @@ The FastAPI backend is optimized for low-latency predictions.
 
 ## 📂 Project Structure
 ```
-0_Research_and_Study/ # Domain study, problem definition, model exploration
-1_Data_Preprocess/ # EDA, cleaning, feature engineering, normalization
-2_Model_Development/ # Model experimentation, evaluation, hyperparameter tuning
-3_Data/
+a_Research_and_Study/ # Domain study, problem definition, model exploration
+b_Data_Preprocess/ # EDA, cleaning, feature engineering, normalization
+c_Model_Development/ # Model experimentation, evaluation, hyperparameter tuning
+d_Data/
 ├── raw/ # Original TLC/NYC trip datasets
 ├── processed/ # Cleaned datasets after preprocessing
 ├── test/ # Test data for final evaluation
 ├── artifacts/ # Saved encoder, scaler, PCA, trained models
 └── predictions/ # Model predictions storage
-4_Pipelines/
+e_Pipelines/
 ├── f_pipeline/ # Main ZenML feature/training/inference pipelines
 └── h_steps/ # Individual step scripts (load, clean, train, etc.)
-5_API_Service/ # FastAPI app (main.py, schemas.py, router_predict.py)
-6_Docker_Deployment/ # Dockerfile, docker-compose, start.sh
-7_Monitoring/ # Prometheus, Grafana, logging configuration
-8_Tests/ # Unit & integration tests
+f_API_Service/ # FastAPI app (main.py, schemas.py, router_predict.py)
+g_Docker_Deployment/ # Dockerfile, docker-compose, start.sh
+h_Monitoring/ # Prometheus, Grafana, logging configuration
+i_Tests/ # Unit & integration tests
 configs/ # YAML configuration files
 notebooks/ # Optional ad-hoc notebooks
 requirements.txt # Python dependencies
