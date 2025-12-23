@@ -120,6 +120,10 @@ touch requirements.txt logs.py zenmlNotes.txt configs/config.yaml
 
 ```
 ---
+## 📖 Documentation
+* **[SETUP_GUIDE.md](./SETUP_GUIDE.md):** Detailed technical instructions for ZenML stack configuration and MLflow tracking.
+* **[Domain_Analysis.md](./a_Research_and_Study/Domain_Analysis.md):** Deep dive into NYC Taxi industry logic and feature engineering.
+---
 ## 🧱 Step-by-Step Workflow
 
 1️⃣ **Research & Study** (0_Research_and_Study/)

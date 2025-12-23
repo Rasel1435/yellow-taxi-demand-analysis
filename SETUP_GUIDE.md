@@ -171,7 +171,7 @@ It should show:
 ### 4️⃣ Run Your Pipeline
 Make sure your pipeline script is set up as before:
 ```bash
-python 4_Pipelines/run_pipeline.py
+python e_Pipelines/training_pipeline.py
 ```
 - Steps will run in Airflow
 - Artifacts (datasets, models, logs) are stored in S3
@@ -204,8 +204,12 @@ zenml model deployer register_model --model_path=path/to/model --deployer huggin
 - Users can call your model API directly from **HuggingFace cloud**
 - Great for showing **international cloud ML skills** on your resume
 
+---
+**MLflow UI**
 
-
+```bash
+mlflow ui --backend-store-uri sqlite:///mlflow.db --default-artifact-root ./mlflow_artifacts
+```
 
 
 
