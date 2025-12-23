@@ -17,17 +17,14 @@ This project implements a production-grade MLOps ecosystem for predicting taxi d
 Analyze NYC Yellow Taxi Trip Records to identify **high-demand areas (hotspots)** and build an **end-to-end ML pipeline** — from **data collection → preprocessing → model training → deployment → monitoring.**
 
 This project demonstrates a **complete MLOps workflow** using:
-## 🏗️ Technical Stac
-- **Python, Pandas, scikit-learn** for preprocessing and modeling 
-- **ZenML** for pipeline orchestration & experiment/metadata tracking
-- **MLflow** for pipeline Experiment tracking & Model Registry
-- **FastAPI** for serving  
-- **Docker** for containerization  
-- **Prometheus + Grafana** for monitoring
-- **Modeling** Scikit-Learn (RandomForest, PCA for Dimensionality Reduction)
-- **API** FastAPI (V2 Inference Protocol compliant)
-- **Dashboard** Streamlit & Pydeck (3D Spatial Visualization)
-- **Infrastructure** Docker & Docker Compose
+## 🏗️ Technical Stack
+* **Orchestration:** ZenML (Pipeline management & Metadata tracking)
+* **Experiment Tracking:** MLflow (Logs, Metrics, and Model Registry)
+* **Modeling:** Scikit-Learn (RandomForest, PCA for Dimensionality Reduction)
+* **API:** FastAPI (Pydantic validation, V2 Inference Protocol)
+* **Dashboard:** Streamlit & Pydeck (3D Spatial Visualization)
+* **Infrastructure:** Docker & Docker Compose
+* **Monitoring:** Prometheus & Grafana
 
 ---
 ## 🚀 Key Features
