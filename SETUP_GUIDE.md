@@ -46,7 +46,7 @@ pip install "zenml[server]==0.91.2"
 ### 2️⃣ Run the full pipeline
 
 ```bash
-python 4_Pipelines/run_pipeline.py
+python e_Pipelines/training_pipeline.py
 ```
 
 ZenML will execute the steps:
