@@ -1,7 +1,4 @@
-# yellow-taxi-demand-analysis
-End-to-end ML pipeline for analyzing Yellow Taxi demand hotspots in NYC
-
-# 🚖 Yellow Taxi Demand Analysis
+# 🚖 NYC Yellow Taxi Demand: End-to-End MLOps System
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![Framework](https://img.shields.io/badge/ML-Pipeline%20with%20ZenML-orange)](https://zenml.io/)
 [![Tracking](https://img.shields.io/badge/Experiment-MLflow-yellow)](https://mlflow.org/)
@@ -11,7 +8,7 @@ End-to-end ML pipeline for analyzing Yellow Taxi demand hotspots in NYC
 
 > 🚀 A fully reproducible end-to-end MLOps project built with ZenML, MLflow, and FastAPI.
 
-End-to-end ML pipeline for analyzing Yellow Taxi demand hotspots in NYC.
+This project implements a production-grade MLOps ecosystem for predicting taxi demand in New York City. It features automated ETL, Continuous Deployment, and a Live Interactive Dashboard.
 
 ---
 
@@ -20,11 +17,33 @@ End-to-end ML pipeline for analyzing Yellow Taxi demand hotspots in NYC.
 Analyze NYC Yellow Taxi Trip Records to identify **high-demand areas (hotspots)** and build an **end-to-end ML pipeline** — from **data collection → preprocessing → model training → deployment → monitoring.**
 
 This project demonstrates a **complete MLOps workflow** using:
-- **Python, Pandas, scikit-learn** for preprocessing and modeling  
-- **ZenML + MLflow** for pipeline orchestration and experiment tracking  
+## 🏗️ Technical Stac
+- **Python, Pandas, scikit-learn** for preprocessing and modeling 
+- **ZenML** for pipeline orchestration & experiment/metadata tracking
+- **MLflow** for pipeline Experiment tracking & Model Registry
 - **FastAPI** for serving  
 - **Docker** for containerization  
-- **Prometheus + Grafana** for monitoring  
+- **Prometheus + Grafana** for monitoring
+- **Modeling** Scikit-Learn (RandomForest, PCA for Dimensionality Reduction)
+- **API** FastAPI (V2 Inference Protocol compliant)
+- **Dashboard** Streamlit & Pydeck (3D Spatial Visualization)
+- **Infrastructure** Docker & Docker Compose
+
+---
+## 🚀 Key Features
+**1. Automated CI/CD for ML**
+The project uses a Continuous Deployment pipeline that acts as a quality gate.
+- Deployment Trigger: A model is only promoted to production if it meets strict performance thresholds (e.g., $R^2 > 0.90$ and $MAPE < 0.45$).
+- Automated Serving: Once validated, ZenML automatically deploys the model to an MLflow prediction server.
+**2. Feature Engineering & Scaling**
+To handle the complexity of NYC taxi data, the system performs:
+- Temporal Engineering: Extracting cyclical patterns (Hour, Day of Week, Month).
+- Lag & Window Features: Incorporating historical trends to improve forecasting accuracy.
+- Dimensionality Reduction: Utilizing PCA to reduce feature noise while maintaining 95% of data variance.
+**3. Real-time Inference API**
+The FastAPI backend is optimized for low-latency predictions.
+- Cold-Start Handling: Implements smart imputation (Zero-filling) for real-time requests where historical lag data is missing.
+- Schema Validation: Uses Pydantic to ensure high data integrity for incoming requests.
 
 ---
 
@@ -57,7 +76,21 @@ README.md # Project documentation
 
 
 
-
+---
+## 🚥 How to Run (Docker)
+Ensure you have Docker and Docker Compose installed.
+**1. Clone the repository:**
+```bash
+git clone https://github.com/Rasel1435/yellow-taxi-demand-analysis.git
+cd yellow-taxi-demand-analysis
+```
+**2. Launch the stack:**
+```bash
+docker-compose up --build
+```
+**3. Access the tools:**
+- **Live Dashboard:** http://localhost:8501
+- **API Documentation:** http://localhost:8000/docs
 ---
 
 ## 🚀 Quick Setup Guide
