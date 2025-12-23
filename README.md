@@ -32,20 +32,20 @@ This project demonstrates a **complete MLOps workflow** using:
 ---
 ## 🚀 Key Features
 **1. Automated CI/CD for ML**
-The project uses a Continuous Deployment pipeline that acts as a quality gate.
-- Deployment Trigger: A model is only promoted to production if it meets strict performance thresholds (e.g., $R^2 > 0.90$ and $MAPE < 0.45$).
-- Automated Serving: Once validated, ZenML automatically deploys the model to an MLflow prediction server.
+The project uses a **Continuous Deployment** pipeline that acts as a quality gate.
+- **Deployment Trigger:** A model is only promoted to production if it meets strict performance thresholds (e.g., $R^2 > 0.90$ and $MAPE < 0.45$).
+- **Automated Serving:** Once validated, ZenML automatically deploys the model to an MLflow prediction server.
   
 **2. Feature Engineering & Scaling**
 To handle the complexity of NYC taxi data, the system performs:
-- Temporal Engineering: Extracting cyclical patterns (Hour, Day of Week, Month).
-- Lag & Window Features: Incorporating historical trends to improve forecasting accuracy.
-- Dimensionality Reduction: Utilizing PCA to reduce feature noise while maintaining 95% of data variance.
+- **Temporal Engineering:** Extracting cyclical patterns (Hour, Day of Week, Month).
+- **Lag & Window Features:** Incorporating historical trends to improve forecasting accuracy.
+- **Dimensionality Reduction:** Utilizing **PCA** to reduce feature noise while maintaining 95% of data variance.
   
 **3. Real-time Inference API**
 The FastAPI backend is optimized for low-latency predictions.
-- Cold-Start Handling: Implements smart imputation (Zero-filling) for real-time requests where historical lag data is missing.
-- Schema Validation: Uses Pydantic to ensure high data integrity for incoming requests.
+- **Cold-Start Handling:** Implements smart imputation (Zero-filling) for real-time requests where historical lag data is missing.
+- **Schema Validation:** Uses Pydantic to ensure high data integrity for incoming requests.
 
 ---
 
