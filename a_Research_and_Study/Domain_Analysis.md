@@ -1,7 +1,7 @@
 ## 🧠 NYC Taxi Demand: Domain Study & Problem Definition
 **1. The Core Objective**
 
-The goal is to solve the **Supply-Demand Imbalance.** In New York City, taxi drivers often lose money by idling in low-demand areas, while passengers in high-demand areas face long wait times. By predicting demand, we can suggest where "supply" (drivers) should be positioned 1–2 hours in advance
+The goal is to solve the **Supply-Demand Imbalance.** In New York City, taxi drivers often lose money by idling in low-demand areas, while passengers in high-demand areas face long wait times. By predicting demand, we can suggest where "supply" (drivers) should be positioned 1–2 hours in advance.
 
 **2. Influencing Factors (The "Signals")**
 Through EDA, we identified three primary drivers of demand:
