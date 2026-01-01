@@ -24,12 +24,20 @@ def get_nyc_zones():
     })
 
 def get_demand_color(demand):
-    # Scale colors: Red (High) to Green (Low)
-    # Based on your image showing ~3000 pickups, we scale accordingly
+    # Scale: 0 to 5000
     normalized = min(1.0, demand / 5000)
-    r = int(255 * normalized)
-    g = int(255 * (1 - normalized))
-    return [r, g, 50, 160]
+    
+    # Transition from Electric Violet to Neon Magenta
+    # Low Demand (Violet): [138, 43, 226]
+    # High Demand (Neon Magenta): [255, 0, 255]
+    
+    r = int(138 + (117 * normalized))
+    g = int(43 * (1 - normalized))
+    b = int(226 + (29 * normalized))
+    
+    # Use 255 alpha for maximum "pop" so it doesn't blend with the map
+    return [r, g, b, 255]
+
 
 # 3. Main Logic
 if st.button("Predict Demand"):
@@ -82,7 +90,7 @@ if st.button("Predict Demand"):
             ))
 
             # --- METRICS SECTION ---
-            st.markdown("### 📈 24-Hour Trend Forecast")
+            st.markdown("### 24-Hour Trend Forecast")
             
             # Simulate trend based on your model's current behavior
             # In a real app, you'd loop 24 API calls here

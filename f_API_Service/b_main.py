@@ -26,9 +26,9 @@ try:
     scaler = joblib.load(os.path.join(ARTIFACT_DIR, "scaler_20251220_073308.joblib"))
     pca = joblib.load(os.path.join(ARTIFACT_DIR, "pca_model_20251220_073327.joblib"))
     selected_features = joblib.load(os.path.join(ARTIFACT_DIR, "selected_features_20251220_073259.joblib"))
-    print("✅ All ML artifacts loaded successfully.")
+    print("All ML artifacts loaded successfully.")
 except Exception as e:
-    print(f"❌ Error loading artifacts: {e}")
+    print(f"Error loading artifacts: {e}")
 
 # ---------------------------------------------------------
 # 2. HELPER: INFERENCE LOGIC
