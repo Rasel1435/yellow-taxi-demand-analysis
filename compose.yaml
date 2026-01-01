@@ -1,0 +1,23 @@
+services:
+  # Service 1: The FastAPI Backend
+  api:
+    image: yellowtaxidemandanalysis-api
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  # Service 2: The Streamlit Frontend
+  frontend:
+    image: yellowtaxidemandanalysis-ui
+    build:
+      context: .
+      dockerfile: ./Dockerfile # We can reuse the same image
+    command: ["streamlit", "run", "f_API_Service/c_frontend.py", "--server.port=8501", "--server.address=0.0.0.0"]
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api

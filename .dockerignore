@@ -1,0 +1,52 @@
+**/__pycache__
+**/.venv
+**/.classpath
+**/.dockerignore
+**/.env
+**/.git
+**/.gitignore
+**/.project
+**/.settings
+**/.toolstarget
+**/.vs
+**/.vscode
+**/*.*proj.user
+**/*.dbmdl
+**/*.jfm
+**/bin
+**/charts
+**/docker-compose*
+**/compose*
+**/Dockerfile*
+**/node_modules
+**/npm-debug.log
+**/obj
+**/secrets.dev.yaml
+**/values.dev.yaml
+LICENSE
+README.md
+
+# ... (keep your other **/* rules at the top)
+
+# 1. Ignore EVERYTHING by default
+**/*
+
+# 2. Allow only the specific folders needed for the API and UI
+!f_API_Service/
+!e_Pipelines/
+!configs/
+!d_Data/artifacts/
+
+# 3. Allow specific root files
+!requirements.txt
+!logs.py
+!compose.yaml
+!Dockerfile
+
+# 4. Re-ignore heavy files or junk that might be inside the allowed folders
+**/__pycache__/
+**/.venv/
+**/.git/
+**/*.csv
+**/*.parquet
+**/*.ipynb

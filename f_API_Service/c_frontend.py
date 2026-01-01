@@ -96,3 +96,6 @@ if st.button("Predict Demand"):
             
         except Exception as e:
             st.error(f"Error: {e}")
+
+
+# streamlit run f_API_Service/c_frontend.py

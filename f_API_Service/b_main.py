@@ -85,7 +85,18 @@ async def predict_demand(data: List[TaxiFeatureInput]):
         # This will print the ACTUAL error to your terminal if it crashes again
         print(f"DEBUG ERROR: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/")
+def read_root():
+    return {
+        "project": "NYC Yellow Taxi Demand Analysis",
+        "status": "online",
+        "documentation": "/docs"
+    }
 
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
+    # uvicorn f_API_Service.b_main:app --reload --port 8000
