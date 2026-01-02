@@ -19,10 +19,14 @@ pydeck
 requests
 
 # Database & Dependencies
-sqlalchemy-utils
-sqlmodel
+sqlmodel==0.0.14
+sqlalchemy>=2.0.0,<2.0.25
+sqlalchemy-utils==0.41.1
 
 passlib
 bcrypt==3.2.2
 pymysql
 cryptography
+
+# Geospatial
+h3>=3.7.0

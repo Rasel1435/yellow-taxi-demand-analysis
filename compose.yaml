@@ -1,23 +1,43 @@
 services:
   # Service 1: The FastAPI Backend
   api:
-    image: yellowtaxidemandanalysis-api
-    build:
-      context: .
-      dockerfile: ./Dockerfile
+    image: rasel143x/yellow-taxi-api:v1.0
+    container_name: yellow-taxi-api
+    command: ["gunicorn", "--bind", "0.0.0.0:8000", "-k", "uvicorn.workers.UvicornWorker", "f_API_Service.b_main:app", "--timeout", "300"]
     ports:
       - "8000:8000"
     environment:
       - PYTHONUNBUFFERED=1
+    volumes:
+      - zenml_data:/home/appuser/.config/zenml
+    networks:
+      - taxi_network
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
 
   # Service 2: The Streamlit Frontend
   frontend:
-    image: yellowtaxidemandanalysis-ui
-    build:
-      context: .
-      dockerfile: ./Dockerfile # We can reuse the same image
+    image: rasel143x/yellow-taxi-ui:v1.0
+    container_name: yellow-taxi-ui
     command: ["streamlit", "run", "f_API_Service/c_frontend.py", "--server.port=8501", "--server.address=0.0.0.0"]
     ports:
       - "8501:8501"
+    environment:
+      - API_URL=http://api:8000/predict
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+    networks:
+      - taxi_network
+    restart: always
+
+networks:
+  taxi_network:
+    driver: bridge
+
+volumes:
+  zenml_data:

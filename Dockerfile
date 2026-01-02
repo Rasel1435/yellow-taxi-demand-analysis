@@ -1,9 +1,7 @@
-# For more information, please refer to https://aka.ms/vscode-docker-python
 FROM python:3.12-slim
 
 EXPOSE 8000
 
-# Keeps Python from generating .pyc files in the container
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
@@ -14,21 +12,21 @@ RUN python -m pip install --no-cache-dir --default-timeout=1000 -r requirements.
 WORKDIR /app
 
 # --- SELECTIVE COPY FOR DEPLOYMENT ---
-# 1. Copy the core code folders
 COPY f_API_Service/ ./f_API_Service/
 COPY e_Pipelines/ ./e_Pipelines/
 COPY configs/ ./configs/
-
-# 2. Copy the essential models/artifacts
 COPY d_Data/artifacts/ ./d_Data/artifacts/
-
-# 3. Copy the individual log utility file (Fixes the ModuleNotFoundError)
 COPY logs.py .
-# -------------------------------------
 
-# Setup user permissions
-RUN adduser -u 5678 --disabled-password --gecos "" appuser && chown -R appuser /app
+# --- FIX: PERMISSIONS & DIRECTORIES ---
+# 1. Create the appuser
+# 2. Pre-create the ZenML config directory so the user owns it BEFORE the volume mounts
+RUN adduser -u 5678 --disabled-password --gecos "" appuser && \
+    mkdir -p /home/appuser/.config/zenml && \
+    chown -R appuser:appuser /home/appuser /app
+
 USER appuser
 
-# Start the API
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "-k", "uvicorn.workers.UvicornWorker", "f_API_Service.b_main:app"]
+# --- FIX: TIMEOUT ---
+# Added --timeout 300 to prevent Gunicorn from killing the worker during ZenML initialization
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "-k", "uvicorn.workers.UvicornWorker", "f_API_Service.b_main:app", "--timeout", "300"]
