@@ -15,7 +15,9 @@ This project implements a production-grade MLOps ecosystem for predicting taxi d
 ## 🧠 Project Overview
 
 Analyze NYC Yellow Taxi Trip Records to identify **high-demand areas (hotspots)** and build an **end-to-end ML pipeline** — from **data collection → preprocessing → model training → deployment → monitoring.**
+
 ![NYC Taxi Demand Prediction](https://raw.githubusercontent.com/Rasel1435/yellow-taxi-demand-analysis/main/Yellow-Taxi-Demand.png)
+
 This project demonstrates a **complete MLOps workflow** using:
 ## 🏗️ Technical Stack
 * **Orchestration:** ZenML (Pipeline management & Metadata tracking)
