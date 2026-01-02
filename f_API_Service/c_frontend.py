@@ -8,17 +8,90 @@ import h3
 import os
 
 # ---------------------------------------------------------
-# STREAMLIT APP: NYC TAXI DEMAND VISUALIZATION
+# 1. PAGE CONFIGURATION & BRANDING
 # ---------------------------------------------------------
-st.set_page_config(page_title="NYC Taxi Demand Live", layout="wide")
-st.title("🚖 NYC Yellow Taxi Demand Forecast")
+st.set_page_config(
+    page_title="NYC Taxi Demand Live", 
+    page_icon="🚖",
+    layout="wide"
+)
 
-# 1. Sidebar Configuration
-st.sidebar.header("Model Parameters")
-selected_date = st.sidebar.date_input("Select Date", datetime.date(2025, 1, 1))
+# Professional CSS for centering and modern styling
+st.markdown("""
+    <style>
+    .main {
+        background-color: #f8f9fa;
+    }
+    .stMetric {
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border: 1px solid #eee;
+    }
+    /* Centering Sidebar Content */
+    [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
+        text-align: center;
+        align-items: center;
+    }
+    [data-testid="stSidebar"] .stMarkdown {
+        text-align: center;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+st.title("🚖 NYC Yellow Taxi Demand Forecast")
+st.markdown("---")
+
+# ---------------------------------------------------------
+# 2. SIDEBAR CONFIGURATION (CENTER ALIGNED)
+# ---------------------------------------------------------
+# Stable Icon from Google (Centered via Columns)
+LOGO_URL = "https://cdn-icons-png.flaticon.com/512/3448/3448636.png"
+
+# Centering the logo using columns
+col1, col2, col3 = st.sidebar.columns([1, 2, 1])
+with col2:
+    st.image(LOGO_URL, use_container_width=True)
+
+st.sidebar.markdown("### Model Parameters")
+selected_date = st.sidebar.date_input("Select Date", datetime.date(2026, 1, 1))
 selected_hour = st.sidebar.slider("Select Hour of Day", 0, 23, 12)
 
-# 2. Data Preparation Functions
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 🚀 About Project")
+st.sidebar.info(
+    """
+    **Architecture:**
+    - **Backend:** FastAPI (Dockerized)
+    - **Model:** RandomForest + PCA
+    - **Spatial:** H3 Geo-Indexing
+    - **Pipeline:** ZenML / MLOps
+    """
+)
+
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 👨‍💻 Developer")
+st.sidebar.write("**Sheikh Rasel Ahmed**")
+
+# Centered Portfolio Badges
+st.sidebar.markdown(f"""
+<div style="display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%;">
+    <a href="https://github.com/Rasel1435/yellow-taxi-demand-analysis" target="_blank" style="width: 80%;">
+        <img src="https://img.shields.io/badge/GitHub-Repository-white?style=for-the-badge&logo=github&logoColor=black" style="width: 100%;" alt="Github">
+    </a>
+    <a href="https://www.linkedin.com/in/shekhnirob1/" target="_blank" style="width: 80%;">
+        <img src="https://img.shields.io/badge/LinkedIn-Profile-blue?style=for-the-badge&logo=linkedin" style="width: 100%;" alt="LinkedIn">
+    </a>
+</div>
+""", unsafe_allow_html=True)
+
+st.sidebar.markdown("---")
+st.sidebar.caption("Data: NYC TLC Trip Records")
+
+# ---------------------------------------------------------
+# 3. HELPER FUNCTIONS
+# ---------------------------------------------------------
 def get_nyc_zones():
     df = pd.DataFrame({
         'lat': [40.7128, 40.7831, 40.7484, 40.7589, 40.7061, 40.7527, 40.7644, 40.7022],
@@ -36,45 +109,40 @@ def get_demand_color(demand):
     b = 255 
     return [r, g, b, 255]
 
-# 3. Main Prediction Logic
-if st.button("Predict Demand"):
-    with st.spinner("Connecting to API and fetching predictions..."):
-        # FETCH ENVIRONMENT VARIABLE
+# ---------------------------------------------------------
+# 4. MAIN PREDICTION LOGIC
+# ---------------------------------------------------------
+if st.button("Generate Demand Forecast"):
+    with st.spinner("Requesting inference from FastAPI Service..."):
         API_URL = os.getenv("API_URL", "http://api:8000/predict")
         
         try:
             formatted_time = f"{selected_date} {selected_hour:02d}:00:00"
             payload = [{"tpep_pickup_datetime": formatted_time, "passenger_count": 1, "VendorID": 1}]
             
-            # --- THE KEY FIX: INCREASE TIMEOUT TO 30s ---
             response = requests.post(API_URL, json=payload, timeout=30)
             
             if response.status_code == 200:
                 prediction_val = response.json()[0]['predicted_taxi_demand']
                 st.success(f"Real-time Prediction: {prediction_val:.2f} pickups")
             else:
-                st.error(f"API Error: {response.status_code}")
-                prediction_val = 1500.0 # Fallback
+                st.error(f"API Error: Status {response.status_code}")
+                prediction_val = 1500.0
         
-        except requests.exceptions.Timeout:
-            st.error("⌛ Request Timed Out. The API is taking too long to process the model.")
-            prediction_val = 1500.0
         except Exception as e:
-            st.warning(f"Connection to API ({API_URL}) failed.")
-            with st.expander("Technical details"):
-                st.write(str(e))
+            st.warning("Using Fallback Demo Data (API Connection Offline)")
             prediction_val = 1500.0 
 
-        # --- DATA PROCESSING & DASHBOARD ---
+        # --- VISUALIZATION SECTION ---
         map_data = get_nyc_zones()
         map_data['demand'] = prediction_val
         map_data['color'] = map_data['demand'].apply(get_demand_color)
         
-        col1, col2 = st.columns([2, 1])
+        col_m1, col_m2 = st.columns([2, 1])
 
-        with col1:
-            st.markdown("### 🗺️ Demand Hotspots (3D Hexagons)")
-            view_state = pdk.ViewState(latitude=40.7306, longitude=-73.9352, zoom=11, pitch=50)
+        with col_m1:
+            st.markdown("### 🗺️ NYC Demand Hotspots (H3 Resolution 9)")
+            view_state = pdk.ViewState(latitude=40.7306, longitude=-73.9352, zoom=11, pitch=45)
             
             hexagon_layer = pdk.Layer(
                 "H3HexagonLayer",
@@ -91,17 +159,19 @@ if st.button("Predict Demand"):
                 layers=[hexagon_layer], 
                 initial_view_state=view_state,
                 height=600,
-                tooltip={"text": "{zone_name}\nDemand: {demand}"},
-                map_style="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
+                tooltip={"text": "{zone_name}\nPredicted Pickups: {demand}"},
+                map_style="mapbox://styles/mapbox/dark-v10"
             ))
 
-        with col2:
-            st.markdown("### 📈 24-Hour Trend")
+        with col_m2:
+            st.markdown("### 📈 Demand Analysis")
             hours = list(range(24))
             trend_data = pd.DataFrame({
                 "Hour": hours,
-                "Demand": [prediction_val * (1 + 0.3 * np.sin(h/4)) for h in hours]
+                "Predicted Demand": [prediction_val * (1 + 0.3 * np.sin(h/4)) for h in hours]
             }).set_index("Hour")
             
-            st.line_chart(trend_data, height=400)
-            st.metric(label="Peak Demand Estimate", value=f"{int(prediction_val * 1.3)}", delta="+12%")
+            st.area_chart(trend_data, height=350, use_container_width=True)
+            
+            st.metric(label="Selected Hour Demand", value=f"{int(prediction_val)}")
+            st.metric(label="Expected Daily Peak", value=f"{int(prediction_val * 1.3)}", delta="+12% vs Avg")
