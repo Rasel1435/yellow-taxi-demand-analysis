@@ -288,8 +288,11 @@ def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
     window_columns = [col for col in expanded_df.columns if "window" in col]
     exp_columns = [col for col in expanded_df.columns if "expanding" in col]
     
+    # Fill Lags with 0
     expanded_df[lag_columns] = expanded_df[lag_columns].fillna(0)
-    expanded_df[window_columns] = expanded_df[window_columns].bfill()
+    # Backfill Windows, then Forward Fill, then 0 as a final safety
+    expanded_df[window_columns] = expanded_df[window_columns].bfill().ffill().fillna(0)
+    # Fill Expanding Windows with 0
     expanded_df[exp_columns] = expanded_df[exp_columns].fillna(0)
 
     logger.info(f"==> Final feature engineered DataFrame Head:\n{expanded_df.head()}")
