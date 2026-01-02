@@ -109,16 +109,26 @@ if st.button("Generate Demand Forecast"):
         try:
             with st.spinner("Processing with local model file..."):
                 model = joblib.load(MODEL_PATH)
-                # Ensure input matches your model's expected shape
+                
+                # We must create a DataFrame with the EXACT names used in training
+                # Based on your payload, your model likely expects these columns:
                 day_of_week = selected_date.weekday()
-                # Assuming your features were: [VendorID, passengers, hour, day_of_week]
-                # Adjust features based on your exact training data columns
-                features = np.array([[1, 1, selected_hour, day_of_week]])
-                prediction_val = float(model.predict(features)[0])
-                st.success(f"Prediction generated: {prediction_val:.2f} pickups")
+                
+                # Create a DataFrame so the model gets column names
+                input_df = pd.DataFrame([{
+                    "VendorID": 1,
+                    "passenger_count": 1,
+                    "hour": selected_hour,
+                    "day_of_week": day_of_week
+                }])
+                
+                # Run prediction
+                prediction_val = float(model.predict(input_df)[0])
+                st.success(f"✅ Real-time Prediction: {prediction_val:.2f} pickups")
         except Exception as e:
-            st.error(f"Model Load Error: {e}")
-
+            # This helps us see WHY it's failing in the logs
+            st.error(f"Internal Model Error: {e}")
+            
     # STEP B: Try API Connection (Backup for local Docker)
     if prediction_val is None:
         try:
