@@ -16,7 +16,7 @@ services:
       test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000')"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 20
     restart: always
 
   # Service 2: The Streamlit Frontend
