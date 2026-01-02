@@ -51,8 +51,14 @@ def run_inference(raw_df: pd.DataFrame):
     raw_df['tpep_pickup_datetime'] = pd.to_datetime(raw_df['tpep_pickup_datetime'])
     
     # Preprocessing
-    df = clean_data(raw_df)
-    df = feature_engineering(df)
+    df = clean_data.entrypoint(raw_df)
+    if df is None:
+        raise ValueError("Data cleaning returned None")
+        
+    df = feature_engineering.entrypoint(df)
+    if df is None:
+        raise ValueError("Feature engineering returned None")
+    
     
     selected_features = ml_artifacts["selected_features"]
     for col in selected_features:
