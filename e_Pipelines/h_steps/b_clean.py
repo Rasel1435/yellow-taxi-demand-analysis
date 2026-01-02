@@ -64,18 +64,20 @@ def clean_data(
         # -----------------------------------
         # Handle Outliers (IQR method)
         # -----------------------------------
-        for col in ["passenger_demand", "taxi_demand"]:
-            if col in data.columns:
-                Q1 = data[col].quantile(0.25)
-                Q3 = data[col].quantile(0.75)
-                IQR = Q3 - Q1
-                lower = Q1 - 1.5 * IQR
-                upper = Q3 + 1.5 * IQR
-                before = len(data)
-                data = data[(data[col] >= lower) & (data[col] <= upper)]
-                after = len(data)
-                logger.info(f"{col}: removed {before - after} outliers (IQR bounds [{lower:.2f}, {upper:.2f}])")
-
+        if len(data) > 10:
+            for col in ["passenger_demand", "taxi_demand"]:
+                if col in data.columns:
+                    Q1 = data[col].quantile(0.25)
+                    Q3 = data[col].quantile(0.75)
+                    IQR = Q3 - Q1
+                    lower = Q1 - 1.5 * IQR
+                    upper = Q3 + 1.5 * IQR
+                    before = len(data)
+                    data = data[(data[col] >= lower) & (data[col] <= upper)]
+                    after = len(data)
+                    logger.info(f"{col}: removed {before - after} outliers (IQR bounds [{lower:.2f}, {upper:.2f}])")
+        else:
+            logger.info("Not enough data points to perform outlier removal.")
         # -----------------------------------
         # Final summary
         # -----------------------------------
