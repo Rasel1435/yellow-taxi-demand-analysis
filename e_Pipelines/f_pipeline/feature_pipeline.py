@@ -36,6 +36,7 @@ from sklearn.metrics import (
 )
 from statsmodels.tools.eval_measures import rmse
 
+
 # -----------------------------------------------------
 # Logger setup
 # -----------------------------------------------------
@@ -443,28 +444,24 @@ def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
     if isinstance(df, dd.DataFrame):
         logger.info("Converting Dask DataFrame to Pandas...")
         df = df.compute()
-    
     logger.info("Starting feature engineering pipeline")
-    
-    # CRITICAL: Use .entrypoint for internal ZenML steps to bypass orchestration
-    temp_df = add_temporal_features.entrypoint(dataframe=df)
-    lagged_df = add_lag_features.entrypoint(temp_df)
-    windowed_df = add_window_features.entrypoint(lagged_df)
-    expanded_df = add_expanding_window_features.entrypoint(windowed_df)
+    temp_df = add_temporal_features(dataframe=df)
+    lagged_df = add_lag_features(temp_df)
+    windowed_df = add_window_features(lagged_df)
+    expanded_df = add_expanding_window_features(windowed_df)
 
     # -----------------------------
-    # Handle NaNs (Enhanced safety for single-row inference)
+    # Handle NaNs created by feature engineering
     # -----------------------------
     lag_columns = [col for col in expanded_df.columns if "_lag_" in col]
     window_columns = [col for col in expanded_df.columns if "window" in col]
     exp_columns = [col for col in expanded_df.columns if "expanding" in col]
     
     expanded_df[lag_columns] = expanded_df[lag_columns].fillna(0)
-    # Backfill + Ffill ensures no NaNs even if only 1 row is present
-    expanded_df[window_columns] = expanded_df[window_columns].bfill().ffill().fillna(0)
+    expanded_df[window_columns] = expanded_df[window_columns].bfill()
     expanded_df[exp_columns] = expanded_df[exp_columns].fillna(0)
 
-    logger.info("Feature engineering pipeline completed successfully")
+    logger.info("Feature engineering pipeline completed")
     return expanded_df
 
 

@@ -54,8 +54,12 @@ with st.sidebar:
 # --------------------------------------------------
 st.title("🚖 NYC Yellow Taxi Demand Forecast")
 
-# API_URL = os.getenv("API_URL", "http://api:8000/predict")
-API_URL = "https://yellow-taxi-demand-analysis.onrender.com/predict"
+if os.getenv("RENDER") == "true":
+    API_URL = "https://your-fastapi-service.onrender.com/predict"
+else:
+    API_URL = "http://127.0.0.1:8000/predict"
+# API_URL = os.getenv("API_URL", "https://your-fastapi-service.onrender.com/predict")
+
 
 if st.button("Predict Demand"):
     try:

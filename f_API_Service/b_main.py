@@ -6,10 +6,11 @@ from typing import List
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 
-# Adjust these imports based on your folder structure
+# Since all files are in the same folder, just import directly
 from f_API_Service.a_schemas import TaxiFeatureInput, PredictionOutput
-from e_Pipelines.f_pipeline.feature_pipeline import clean_data
-from e_Pipelines.f_pipeline.feature_pipeline import feature_engineering
+from f_API_Service.d_clean import clean_data
+from f_API_Service.e_featureEngineering import feature_engineering
+
 
 # Global storage for ML artifacts
 ml_artifacts = {}
@@ -51,14 +52,8 @@ def run_inference(raw_df: pd.DataFrame):
     raw_df['tpep_pickup_datetime'] = pd.to_datetime(raw_df['tpep_pickup_datetime'])
     
     # Preprocessing
-    df = clean_data.entrypoint(raw_df)
-    if df is None:
-        raise ValueError("Data cleaning returned None")
-        
-    df = feature_engineering.entrypoint(df)
-    if df is None:
-        raise ValueError("Feature engineering returned None")
-    
+    df = clean_data(raw_df)
+    df = feature_engineering(df)
     
     selected_features = ml_artifacts["selected_features"]
     for col in selected_features:
@@ -87,5 +82,11 @@ async def predict_demand(data: List[TaxiFeatureInput]):
 def health_check():
     is_ready = all(k in ml_artifacts for k in ["model", "scaler", "pca"])
     return {"status": "healthy" if is_ready else "initializing"}
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("f_API_Service.b_main:app", host="0.0.0.0", port=int(os.getenv("PORT", 8000)), reload=False)
+
 
 # uvicorn f_API_Service.b_main:app --reload --port 8000
