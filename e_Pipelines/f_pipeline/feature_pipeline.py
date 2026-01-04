@@ -36,7 +36,7 @@ from sklearn.metrics import (
 )
 from statsmodels.tools.eval_measures import rmse
 
-
+DATA_SOURCE = "/media/sheikh/F262ADC762AD90C1/backup/ML/yellow-taxi-demand-analysis/d_Data/static/yellow_tripdata_2025-01_january.parquet"
 # -----------------------------------------------------
 # Logger setup
 # -----------------------------------------------------
