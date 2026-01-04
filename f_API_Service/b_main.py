@@ -6,9 +6,10 @@ from typing import List
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 
-from a_schemas import TaxiFeatureInput, PredictionOutput
-from d_clean import clean_data
-from e_featureEngineering import feature_engineering
+from f_API_Service.a_schemas import TaxiFeatureInput, PredictionOutput
+from f_API_Service.d_clean import clean_data
+from f_API_Service.e_featureEngineering import feature_engineering
+
 
 ml_artifacts = {}
 
