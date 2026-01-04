@@ -8,8 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # Adjust these imports based on your folder structure
 from f_API_Service.a_schemas import TaxiFeatureInput, PredictionOutput
-from e_Pipelines.h_steps.b_clean import clean_data
-from e_Pipelines.h_steps.c_featureEngineering import feature_engineering
+from e_Pipelines.f_pipeline.feature_pipeline import clean_data
+from e_Pipelines.f_pipeline.feature_pipeline import feature_engineering
 
 # Global storage for ML artifacts
 ml_artifacts = {}
