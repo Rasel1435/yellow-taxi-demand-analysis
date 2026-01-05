@@ -1,4 +1,5 @@
 import os
+import sys
 import streamlit as st
 import pandas as pd
 import pydeck as pdk
@@ -6,9 +7,12 @@ import datetime
 import numpy as np
 import h3
 import joblib
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from f_API_Service.d_clean import clean_data
-from f_API_Service.e_featureEngineering import feature_engineering
+
+from d_clean import clean_data
+from e_featureEngineering import feature_engineering
+
 
 # --------------------------------------------------
 # 1. PAGE CONFIGURATION
