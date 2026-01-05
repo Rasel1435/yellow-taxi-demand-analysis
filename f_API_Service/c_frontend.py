@@ -1,5 +1,6 @@
 import os
 import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import streamlit as st
 import pandas as pd
 import pydeck as pdk
@@ -7,7 +8,6 @@ import datetime
 import numpy as np
 import h3
 import joblib
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 
 from d_clean import clean_data
