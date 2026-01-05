@@ -1,7 +1,7 @@
 import pandas as pd
 from typing import Union
 from dask import dataframe as dd
-from ..logs import configure_logger
+from logs import configure_logger
 
 logger = configure_logger()
 

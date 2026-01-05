@@ -2,7 +2,7 @@ import pandas as pd
 
 from dask import dataframe as dd
 from zenml import step
-from ..logs import configure_logger
+from logs import configure_logger
 from feature_engine.datetime import DatetimeFeatures
 from feature_engine.timeseries.forecasting import (
     LagFeatures, 
