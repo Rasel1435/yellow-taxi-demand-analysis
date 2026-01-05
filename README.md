@@ -3,16 +3,6 @@
 NYC Taxi Demand App
 </a>
 
-## Architecture
-
-This project supports two execution modes:
-
-### 1. Streamlit Demo (Cloud)
-For reliability on Streamlit Cloud, the live demo performs inference directly inside the Streamlit app.
-
-### 2. FastAPI Service (Production)
-A FastAPI-based inference service (`b_main.py`) is included for scalable, production-grade deployments and local testing.
-
 # 🚖 NYC Yellow Taxi Demand: End-to-End MLOps System
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![Framework](https://img.shields.io/badge/ML-Pipeline%20with%20ZenML-orange)](https://zenml.io/)
@@ -34,6 +24,19 @@ Analyze NYC Yellow Taxi Trip Records to identify **high-demand areas (hotspots)*
 ![NYC Taxi Demand Prediction](https://raw.githubusercontent.com/Rasel1435/yellow-taxi-demand-analysis/main/Yellow-Taxi-Demand.png)
 
 This project demonstrates a **complete MLOps workflow** using:
+
+---
+## Architecture
+
+This project supports two execution modes:
+
+### 1. Streamlit Demo (Cloud)
+For reliability on Streamlit Cloud, the live demo performs inference directly inside the Streamlit app.
+
+### 2. FastAPI Service (Production)
+A FastAPI-based inference service (`b_main.py`) is included for scalable, production-grade deployments and local testing.
+
+
 ## 🏗️ Technical Stack
 * **Orchestration:** ZenML (Pipeline management & Metadata tracking)
 * **Experiment Tracking:** MLflow (Logs, Metrics, and Model Registry)
