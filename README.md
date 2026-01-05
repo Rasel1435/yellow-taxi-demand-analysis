@@ -1,4 +1,8 @@
-### 🔗 Live Demo: [NYC Taxi Demand App](https://yellow-taxi-demand-analysis.streamlit.app) </br>
+### 🔗 Live Demo:
+<a href="https://yellow-taxi-demand-analysis.streamlit.app" target="_blank" rel="noopener noreferrer">
+NYC Taxi Demand App
+</a>
+
 # 🚖 NYC Yellow Taxi Demand: End-to-End MLOps System
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![Framework](https://img.shields.io/badge/ML-Pipeline%20with%20ZenML-orange)](https://zenml.io/)
